@@ -370,7 +370,7 @@ abstract class Database{
 	/**
 	 * Returns the currently attached connection
 	 *
-	 * @returns \Foolz\SQL\Connection
+	 * @returns \Gleez\Database\Connection
 	 */
 	public function getConnection()
 	{
@@ -415,7 +415,7 @@ abstract class Database{
 	 *
 	 * @param  string  $string  The string to keep unaltered
 	 *
-	 * @return  \Foolz\SQL\Expression  The new Expression
+	 * @return  \Gleez\Database\Expression  The new Expression
 	 */
 	public static function expr($string = '')
 	{

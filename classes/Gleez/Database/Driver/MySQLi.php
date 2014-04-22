@@ -440,9 +440,9 @@ class Driver_MySQLi extends Database {
 	/**
 	 * Wraps the input with identifiers when necessary.
 	 *
-	 * @param  \Foolz\SphinxQL\Expression|string  $value  The string to be quoted, or an Expression to leave it untouched
+	 * @param  \Gleez\Database\Expression|string  $value  The string to be quoted, or an Expression to leave it untouched
 	 *
-	 * @return  \Foolz\SphinxQL\Expression|string  The untouched Expression or the quoted string
+	 * @return  \Gleez\Database\Expression|string  The untouched Expression or the quoted string
 	 */
 	public function quoteIdentifier($value)
 	{
@@ -458,7 +458,6 @@ class Driver_MySQLi extends Database {
 		if ($value instanceof \Gleez\Database\Expression) {
 			
 			$value = $value->value();
-			
 		} elseif ($value instanceof \Gleez\Database\Driver_MySQLi) {
 			
 			if ($value->last_query != NULL)
@@ -469,11 +468,9 @@ class Driver_MySQLi extends Database {
 			{
 				$value = '('.$value->compile()->getCompiled().') ';
 			}
-			
 		} elseif ($value === '*') {
 			
 			return $value;
-		
 		} elseif (strpos($value, '.') !== FALSE) {
 			
 			$pieces = explode('.', $value);
@@ -485,8 +482,8 @@ class Driver_MySQLi extends Database {
 				}
 				$pieces[$key] = ($piece != '*') ? '`'.$piece.'`' : $piece;
 			}
+
 			$value = implode('.', $pieces);
-			
 		} else {
 			
 			$value = $this->_identifier.$value.$this->_identifier;
@@ -601,9 +598,9 @@ class Driver_MySQLi extends Database {
 	 * Adds quotes around values when necessary.
 	 * Based on FuelPHP's quoting function.
 	 *
-	 * @param  \Foolz\SphinxQL\Expression|string  $value  The input string, eventually wrapped in an expression to leave it untouched
+	 * @param  \Gleez\Database\Expression|string  $value  The input string, eventually wrapped in an expression to leave it untouched
 	 *
-	 * @return  \Foolz\SphinxQL\Expression|string  The untouched Expression or the quoted string
+	 * @return  \Gleez\Database\Expression|string  The untouched Expression or the quoted string
 	 */
 	public function quote($value)
 	{
