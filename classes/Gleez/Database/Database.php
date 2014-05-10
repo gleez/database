@@ -120,37 +120,6 @@ abstract class Database{
 
 		return static::$instances[$name];
 	}
-
-	public static function factory($name = NULL, array $config = NULL)
-	{
-		if ($name === NULL)
-		{
-			// Use the default instance name
-			$name = self::$default;
-		}
-
-		if ($config === NULL)
-		{
-			// Load the configuration for this database
-			$config = \Config::get("database.{$name}");
-		}
-
-		if ( ! isset($config['type']))
-		{
-			throw new \Gleez_Exception('Database type not defined in :name configuration',
-				array(':name' => $name));
-		}
-
-		// Set the driver class name
-		$driver = '\Gleez\Database\Driver_'.ucfirst($config['type']);
-
-		// Create the database connection instance
-		$driver = new $driver($name, $config);
-		
-		// Create the database connection instance and store
-		return $driver;
-		
-	}
 	
 	// Character that is used to quote identifiers
 	protected $_identifier = '"';
@@ -164,7 +133,8 @@ abstract class Database{
 	// Configuration array
 	protected $_config;
 	
-	protected $_query = TRUE;
+	// SQL statement
+	protected $_query;
 	
 	// Quoted query parameters
 	protected $_parameters = array();
@@ -303,12 +273,17 @@ abstract class Database{
 	protected $into = null;
 	
 	/**
-	 * Value of INTO query for INSERT or REPLACE
+	 * Return results as associative arrays or objects
 	 *
-	 * @var  null|string
+	 * @var  bool|string
 	 */
 	protected $_as_object = FALSE;
-	
+
+	/**
+	 * Parameters for __construct when using object results
+	 *
+	 * @var  array
+	 */
 	protected $_object_params = array();
 	
 	/**
@@ -386,7 +361,7 @@ abstract class Database{
 	 * @return  array  The result of the SHOW query
 	 * @throws  \BadMethodCallException  If there's no such a method
 	 */
-	public function __call($method, $parameters)
+	public function __call111($method, $parameters)
 	{
 	    if (isset(static::$show_queries[$method])) {
 			$ordered = array();
@@ -405,6 +380,7 @@ abstract class Database{
 	
 		throw new \BadMethodCallException($method);
 	}
+
 	
 	/**
 	 * Avoids having the expressions escaped
@@ -432,7 +408,7 @@ abstract class Database{
 		if ( ! is_object($db))
 		{
 		    // Get the database instance
-		    //$db = Gleez\Database\Core::instance($db);
+		    //$db = static::instance($db);
 		}
 	
 		if ($as_object === NULL)
@@ -444,109 +420,11 @@ abstract class Database{
 		{
 			$object_params = $this->_object_params;
 		}
-		
-		// For query statements
-		if ($this->last_query != NULL && $this->_query === TRUE)
-		{
-			$sql = $this->last_query;
-			
-			if ( ! empty($this->_parameters))
-			{
-				// Quote all of the values
-				$values = array_map(array($this->getConnection(), 'quote'), $this->_parameters);
-		
-				// Replace the values in the SQL
-				$sql = strtr($sql, $values);
-		
-				$this->last_query = $sql;
-			}
-		}
-		else
-		{
-			$sql = $this->compile()->getCompiled();
-		}
-		
-		$this->_query = FALSE;
-		
+
+		$sql = $this->compile()->getCompiled();
+
 		// pass the object so execute compiles it by itself
 		return $this->last_result = $this->query($this->type, $sql, $as_object, $object_params);
-	}
-	
-	/**
-	 * Executes a batch of queued queries
-	 *
-	 * @return  array  The array of results from MySQLi
-	 * @throws  SQLException  In case no query is in queue
-	 */
-	public function executeBatch()
-	{
-		if (count($this->getQueue()) == 0) {
-			throw new Exception('There is no Queue present to execute.');
-		}
-
-		$queue = array();
-
-		foreach ($this->getQueue() as $sq) {
-			$queue[] = $sq->compile()->getCompiled();
-		}
-
-		return $this->last_result = $this->getConnection()->multiQuery($queue);
-	}
-	
-	/**
-	 * Enqueues the current object and returns a new one
-	 *
-	 * @return  \Gleez\Database\Database  A new SQL object with the current object referenced
-	 */
-	public function enqueue()
-	{
-		$sq = new static($this->getConnection());
-		$sq->setQueuePrev($this);
-
-		return $sq;
-	}
-	
-	/**
-	 * Returns the ordered array of enqueued objects
-	 *
-	 * @return  \Gleez\Database\Database[]  The ordered array of enqueued objects
-	 */
-	public function getQueue()
-	{
-		$queue = array();
-		$curr = $this;
-
-		do {
-			if ($curr->type != null) {
-			    $queue[] = $curr;
-			}
-		} while ($curr = $curr->getQueuePrev());
-
-		return array_reverse($queue);
-	}
-	
-	/**
-	 * Gets the enqueued object
-	 *
-	 * @return SQL|null
-	 */
-	public function getQueuePrev()
-	{
-	    return $this->queue_prev;
-	}
-	
-	/**
-	 * Sets the reference to the enqueued object
-	 *
-	 * @param  $sq  The object to set as previous
-	 *
-	 * @return  \Gleez\Database\Database  The current object
-	 */
-	public function setQueuePrev($sq)
-	{
-	    $this->queue_prev = $sq;
-	
-	    return $this;
 	}
 	
 	/**
@@ -566,7 +444,7 @@ abstract class Database{
 	 */
 	public function getCompiled()
 	{
-	    return $this->last_query;
+	    return $this->_query;
 	}
 	
 	/**
@@ -632,42 +510,6 @@ abstract class Database{
 	}
 	
 	/**
-	 * CALL SNIPPETS syntax
-	 *
-	 * @param  string  $data
-	 * @param  string  $index
-	 * @param  array   $extra
-	 *
-	 * @return  array  The result of the query
-	 */
-	public function callSnippets($data, $index, $extra = array())
-	{
-	    array_unshift($extra, $index);
-	    array_unshift($extra, $data);
-	
-	    return $this->getConnection()->query('CALL SNIPPETS('.implode(', ', $this->getConnection()->quoteArr($extra)).')');
-	}
-	
-	/**
-	 * CALL KEYWORDS syntax
-	 *
-	 * @param  string       $text
-	 * @param  string       $index
-	 * @param  null|string  $hits
-	 *
-	 * @return  array  The result of the query
-	 */
-	public function callKeywords($text, $index, $hits = null)
-	{
-	    $arr = array($text, $index);
-	    if ($hits !== null) {
-			$arr[] = $hits;
-	    }
-	
-	    return $this->getConnection()->query('CALL KEYWORDS('.implode(', ', $this->getConnection()->quoteArr($arr)).')');
-	}
-	
-	/**
 	 * DESCRIBE syntax
 	 *
 	 * @param  string  $index  The name of the index
@@ -705,31 +547,19 @@ abstract class Database{
 	{
 	    return $this->getConnection()->query('DROP FUNCTION '.$this->getConnection()->quoteIdentifier($udf_name));
 	}
-	
+
 	/**
-	 * ATTACH INDEX * TO RTINDEX * syntax
+	 * Returns results as associative arrays
 	 *
-	 * @param  string  $disk_index
-	 * @param  string  $rt_index
-	 *
-	 * @return  array  The result of the query
+	 * @return  $this
 	 */
-	public function attachIndex($disk_index, $rt_index)
+	public function as_assoc()
 	{
-	    return $this->getConnection()->query('ATTACH INDEX '.$this->getConnection()->quoteIdentifier($disk_index).
-		' TO RTINDEX '. $this->getConnection()->quoteIdentifier($rt_index));
-	}
-	
-	/**
-	 * FLUSH RTINDEX syntax
-	 *
-	 * @param  string  $index
-	 *
-	 * @return  array  The result of the query
-	 */
-	public function flushRtIndex($index)
-	{
-	    return $this->getConnection()->query('FLUSH RTINDEX '.$this->getConnection()->quoteIdentifier($index));
+		$this->_as_object = FALSE;
+
+		$this->_object_params = array();
+
+		return $this;
 	}
 	
 	/**
@@ -765,10 +595,7 @@ abstract class Database{
 	{
 		// Quote the table name
 		$table = $this->quoteTable($table);
-		
-		// To execute the query statement
-		$this->_query = FALSE;
-		
+
 		$info = $this->query(self::SELECT, 'SELECT COUNT(*) AS total_row_count FROM '.$table, FALSE);
 		
 		return isset($info[0]['total_row_count']) ? $info[0]['total_row_count'] : FALSE;
@@ -825,7 +652,6 @@ abstract class Database{
 			$quote_column = array($this->getConnection(), 'quoteIdentifier');
 			
 			// Quote and concat the columns
-			//$query .= ' USING ('.implode(', ', array_map(array($this, 'quote_column'), $this->using)).')';
 			$query .= ' USING ('.implode(', ', array_map($quote_column, $this->using)).')';
 		}
 		elseif ( ! empty($this->join_on))
@@ -876,43 +702,7 @@ abstract class Database{
 
 		return $query;
 	}
-	
-	/**
-	 * Compiles the MATCH part of the queries
-	 * Used by: SELECT, DELETE, UPDATE
-	 *
-	 * @return  string  The compiled MATCH
-	 */
-	public function compileMatch()
-	{
-		$query = '';
 
-		if ( ! empty($this->match)) {
-			$query .= 'WHERE ';
-		}
-
-		if ( ! empty($this->match)) {
-			$query .= "MATCH(";
-			$pre = '';
-
-			foreach ($this->match as $match) {
-				$pre .= '@'.$match['column'].' ';
-
-			    if ($match['half']) {
-					$pre .= $this->halfEscapeMatch($match['value']);
-			    } else {
-					$pre .= $this->escapeMatch($match['value']);
-			    }
-
-			    $pre .= ' ';
-			}
-
-			$query .= $this->getConnection()->escape(trim($pre)).") ";
-		}
-
-		return $query;
-	}
-	
 	/**
 	 * Compiles the WHERE part of the queries
 	 * It interacts with the MATCH() and of course isn't usable stand-alone
@@ -1080,7 +870,7 @@ abstract class Database{
 			$query .= $this->compileJoin().' ';
 		}
 		    
-		$query .= $this->compileMatch().$this->compileWhere();
+		$query .= $this->compileWhere();
 
 		if ( ! empty($this->group_by)) {
 		    $query .= 'GROUP BY '.implode(', ', $this->getConnection()->quoteIdentifierArr($this->group_by)).' ';
@@ -1147,7 +937,7 @@ abstract class Database{
 			$query .= 'OPTION '.implode(', ', $options);
 		}
 
-		$this->last_query = $query;
+		$this->_query = $query;
 
 		return $this;
 	}
@@ -1184,7 +974,7 @@ abstract class Database{
 			$query .= implode(', ', $query_sub);
 		}
 
-		$this->last_query = $query;
+		$this->_query = $query;
 
 		return $this;
 	}
@@ -1221,9 +1011,9 @@ abstract class Database{
 			$query .= implode(', ', $query_sub).' ';
 		}
 
-		$query .= $this->compileMatch().$this->compileWhere();
+		$query .= $this->compileWhere();
 
-		$this->last_query = $query;
+		$this->_query = $query;
 
 		return $this;
 	}
@@ -1247,7 +1037,7 @@ abstract class Database{
 			$query .= $this->compileWhere();
 		}
 
-		$this->last_query = $query;
+		$this->_query = $query;
 
 		return $this;
 	}
@@ -1471,23 +1261,7 @@ abstract class Database{
 
 		return $this;
 	}
-	
-	/**
-	 * MATCH clause (Sphinx-specific)
-	 *
-	 * @param  string   $column  The column name
-	 * @param  string   $value   The value
-	 * @param  boolean  $half    Exclude ", |, - control characters from being escaped
-	 *
-	 * @return  \Gleez\Database\Database  The current object
-	 */
-	public function match($column, $value, $half = false)
-	{
-		$this->match[] = array('column' => $column, 'value' => $value, 'half' => $half);
 
-		return $this;
-	}
-	
 	/**
 	 * WHERE clause
 	 *
@@ -1981,64 +1755,7 @@ abstract class Database{
 
 		return $this;
 	}
-	
-	/**
-	 * Escapes the query for the MATCH() function
-	 *
-	 * @param  string  $string The string to escape for the MATCH
-	 *
-	 * @return  string  The escaped string
-	 */
-	public function escapeMatch($string)
-	{
-		$from = array('\\', '(', ')', '|', '-', '!', '@', '~', '"', '&', '/', '^', '$', '=');
-		$to = array('\\\\', '\(', '\)', '\|', '\-', '\!', '\@', '\~', '\"', '\&', '\/', '\^', '\$', '\=');
 
-		return str_replace($from, $to, $string);
-	}
-	
-	/**
-	 * Escapes the query for the MATCH() function
-	 * Allows some of the control characters to pass through for use with a search field: -, |, "
-	 * It also does some tricks to wrap/unwrap within " the string and prevents errors
-	 *
-	 * @param  string  $string  The string to escape for the MATCH
-	 *
-	 * @return  string  The escaped string
-	 */
-	public function halfEscapeMatch($string)
-	{
-		$from_to = array(
-		'\\' => '\\\\',
-		'(' => '\(',
-		')' => '\)',
-		'!' => '\!',
-		'@' => '\@',
-		'~' => '\~',
-		'&' => '\&',
-		'/' => '\/',
-		'^' => '\^',
-		'$' => '\$',
-		'=' => '\=',
-		);
-
-		$string = str_replace(array_keys($from_to), array_values($from_to), $string);
-
-		// this manages to lower the error rate by a lot
-		if (substr_count($string, '"') % 2 !== 0) {
-			$string .= '"';
-		}
-
-		$from_to_preg = array(
-		"'\"([^\s]+)-([^\s]*)\"'" => "\\1\-\\2",
-		"'([^\s]+)-([^\s]*)'" => "\"\\1\-\\2\""
-		);
-
-		$string = preg_replace(array_keys($from_to_preg), array_values($from_to_preg), $string);
-
-		return $string;
-	}
-	
 	/**
 	 * Return the table prefix defined in the current configuration.
 	 *
@@ -2076,8 +1793,13 @@ abstract class Database{
 		$this->values = array();
 		$this->set = array();
 		$this->options = array();
-
+		$this->limit = null;
+		$this->_as_object = FALSE;
+		$this->_object_params = array();
+		$this->_parameters = array();
+		$this->_query = NULL;
+		
 		return $this;
 	}
-	
+
 }

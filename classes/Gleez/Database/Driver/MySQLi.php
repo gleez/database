@@ -271,14 +271,6 @@ class Driver_MySQLi extends Database {
 	 */
 	public function query($type, $sql, $as_object = FALSE, array $params = NULL)
 	{
-		if ($this->_query == TRUE)
-		{
-			$this->type       = $type;
-			$this->last_query = $sql;
-			
-			return $this;
-		}
-		
 		// Make sure the database is connected
 		$this->_connection OR $this->connect();
 
@@ -295,18 +287,13 @@ class Driver_MySQLi extends Database {
 			$this->_connection->error.' [ '.$sql.']', $this->_connection->errno);
 		}
 
-
 		// Set the last query
 		$this->last_query = $sql;
-		
-		// Set the query to default
-		$this->_query = TRUE;
-		
+
 		if ($type === 'select')
 		{
 			// Return an iterator of results
-			$result = new Result($resource, $sql, $as_object, $params);
-			return $result;
+			return new Result($resource, $sql, $as_object, $params);
 		}
 		elseif ($type === 'insert')
 		{
@@ -634,19 +621,6 @@ class Driver_MySQLi extends Database {
 			}
 			return $value;
 		}
-		elseif (strpos($value, '.') !== FALSE) {
-			    $pieces = explode('.', $value);
-			    $count  = count($pieces) ;
-			    
-			    foreach ($pieces as $key => $piece) {
-				    if ($count > 1 AND $key == 0 AND ($prefix = $this->table_prefix())) {
-					    $piece = $prefix.$piece;
-				    }
-				    $pieces[$key] = '`'.$piece.'`';
-			    }
-			    $value = implode('.', $pieces);
-			    return $value;
-		}
 		elseif (is_int($value))
 		{
 			return (int) $value;
@@ -660,6 +634,7 @@ class Driver_MySQLi extends Database {
 		{
 	        // Supports MVA attributes
 	        return '('.implode(',', $this->quoteArr($value)).')';
+			//return '('.implode(', ', array_map(array($this, __FUNCTION__), $value)).')';
 	    }
 
 	    return $this->escape($value);
@@ -681,5 +656,28 @@ class Driver_MySQLi extends Database {
 		}
 	
 		return $result;
+	}
+
+	/**
+	 * Get MySQL version
+	 *
+	 * Example:
+	 * ~~~
+	 * $db->version();
+	 * ~~~
+	 *
+	 * @param   boolean  $full  Show full version [Optional]
+	 *
+	 * @return  string
+	 */
+	public function version($full = FALSE)
+	{
+		// Make sure the database is connected
+		$this->_connection OR $this->connect();
+
+		$result = $this->_connection->query('SHOW VARIABLES WHERE variable_name = '. $this->quote('version'));
+		$row    = $result->fetch_object();
+
+		return $full ? $row->Value : substr($row->Value, 0, strpos($row->Value, "-"));
 	}
 }

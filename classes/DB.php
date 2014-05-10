@@ -23,7 +23,7 @@ use Gleez\Database\Database;
 
 class DB {
 
-	protected static $_config = array(
+	/*protected static $_config = array(
 			'type' => 'MySQLi',
 			'connection' => array(
 					'hostname'   => 'localhost',
@@ -36,7 +36,9 @@ class DB {
 			'charset'      => 'utf8',
 			'caching'      => FALSE,
 			'profiling'    => FALSE,
-		);
+		);*/
+	
+	protected static $_config = NULL;
 	
 	/**
 	 * Create a new [Database_Query] of the given type.
@@ -58,7 +60,7 @@ class DB {
 	 */
 	public static function query($type, $sql)
 	{
-		return Database::instance('gleez', self::$_config)->query($type, $sql);
+		return Database::instance(NULL, self::$_config)->query($type, $sql);
 	}
 
 	/**
@@ -76,7 +78,7 @@ class DB {
 	 */
 	public static function select($columns = NULL)
 	{
-		return Database::instance('gleez', self::$_config)->select(\func_get_args());
+		return Database::instance(NULL, self::$_config)->select(\func_get_args());
 	}
 
 	/**
@@ -90,7 +92,7 @@ class DB {
 	 */
 	public static function select_array(array $columns = NULL)
 	{
-		return Database::instance('gleez', $this->_config)->select($columns);
+		return Database::instance(NULL, $this->_config)->select($columns);
 	}
 
 	/**
@@ -105,7 +107,7 @@ class DB {
 	 */
 	public static function insert($table = NULL, array $columns = NULL)
 	{
-		return Database::instance('gleez', self::$_config)->insert($table, $columns);
+		return Database::instance(NULL, self::$_config)->insert($table, $columns);
 	}
 
 	/**
@@ -119,7 +121,7 @@ class DB {
 	 */
 	public static function update($table = NULL)
 	{
-		return Database::instance('gleez', self::$_config)->update($table);
+		return Database::instance(NULL, self::$_config)->update($table);
 	}
 
 	/**
@@ -133,7 +135,7 @@ class DB {
 	 */
 	public static function delete($table = NULL)
 	{
-		return Database::instance('gleez', self::$_config)->delete($table);
+		return Database::instance(NULL, self::$_config)->delete($table);
 	}
 
 	/**
@@ -150,7 +152,11 @@ class DB {
 	 */
 	public static function expr($string, $parameters = array())
 	{
-		return Database::instance('gleez', self::$_config)->expr($string);
+		return Database::instance(NULL, self::$_config)->expr($string);
 	}
 
+	public static function version()
+	{
+		return Database::instance(NULL, self::$_config)->version();
+	}
 }

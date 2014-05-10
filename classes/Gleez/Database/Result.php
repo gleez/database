@@ -50,17 +50,17 @@ class Result implements \Countable, \Iterator, \SeekableIterator, \ArrayAccess {
 		// Store the SQL locally
 		$this->_query = $sql;
 
-		//if (is_object($as_object))
-		//{
-		//	// Get the object class name
-		//	$as_object = get_class($as_object);
-		//}
-		//
-		//// Results as objects or associative arrays
-		//$this->_as_object = $as_object;
-				     
+		if (is_object($as_object))
+		{
+			// Get the object class name
+			$as_object = get_class($as_object);
+		}
+		
 		// Results as objects or associative arrays
-		$this->_as_object = ($as_object === TRUE ) ? TRUE : FALSE;
+		$this->_as_object = $as_object;
+
+		// Results as objects or associative arrays
+		//$this->_as_object = ($as_object === TRUE ) ? TRUE : FALSE;
 
 		if ($params)
 		{
