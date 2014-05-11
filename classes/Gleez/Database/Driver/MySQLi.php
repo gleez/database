@@ -238,7 +238,7 @@ class Driver_MySQLi extends Database {
 
 		if ($status === FALSE)
 		{
-			throw new Database_Exception(':error', array(':error' => $this->_connection->error), $this->_connection->errno);
+			throw new DatabaseException(':error', array(':error' => $this->_connection->error), $this->_connection->errno);
 		}
 	}
 
@@ -442,11 +442,12 @@ class Driver_MySQLi extends Database {
 			$alias = str_replace($this->_identifier, $escaped_identifier, $alias);
 		}
 		
-		if ($value instanceof \Gleez\Database\Expression) {
-			
+		if ($value instanceof \Gleez\Database\Expression) 
+		{
 			$value = $value->value();
-		} elseif ($value instanceof \Gleez\Database\Driver_MySQLi) {
-			
+		} 
+		elseif ($value instanceof \Gleez\Database\Driver_MySQLi)
+		{
 			if ($value->last_query != NULL)
 			{
 				$value = '('.$value->last_query.') ';
@@ -455,33 +456,54 @@ class Driver_MySQLi extends Database {
 			{
 				$value = '('.$value->compile()->getCompiled().') ';
 			}
-		} elseif ($value === '*') {
-			
-			return $value;
-		} elseif (strpos($value, '.') !== FALSE) {
-			
-			$pieces = explode('.', $value);
-			$count  = count($pieces) ;
-			
-			foreach ($pieces as $key => $piece) {
-				if ($count > 1 AND $key == 0 AND ($prefix = $this->table_prefix())) {
-					$piece = $prefix.$piece;
-				}
-				$pieces[$key] = ($piece != '*') ? '`'.$piece.'`' : $piece;
-			}
-
-			$value = implode('.', $pieces);
-		} else {
-			
-			$value = $this->_identifier.$value.$this->_identifier;
 		}
-		
+		else
+		{
+			// Convert to a string
+			$value = (string) $value;
+
+			$value = str_replace($this->_identifier, $escaped_identifier, $value);
+
+			if ($value === '*')
+			{
+				return $value;
+			}
+			elseif (strpos($value, '.') !== FALSE)
+			{
+				$parts = explode('.', $value);
+
+				if ($prefix = $this->table_prefix())
+				{
+					// Get the offset of the table name, 2nd-to-last part
+					$offset = count($parts) - 2;
+
+					// Add the table prefix to the table name
+					$parts[$offset] = $prefix.$parts[$offset];
+				}
+
+				foreach ($parts as & $part)
+				{
+					if ($part !== '*')
+					{
+						// Quote each of the parts
+						$part = $this->_identifier.$part.$this->_identifier;
+					}
+				}
+
+				$value = implode('.', $parts);
+			}
+			else
+			{
+				$value = $this->_identifier.$value.$this->_identifier;
+			}
+		}
+
 		if (isset($alias))
 		{
 			// Attach table prefix to alias
 			$value .= ' AS '.$this->_identifier.$alias.$this->_identifier;
 		}
-		
+
 		return $value;
 	}
 
@@ -639,7 +661,7 @@ class Driver_MySQLi extends Database {
 
 	    return $this->escape($value);
 	}
-	
+
 	/**
 	* Calls $this->quote() on every element of the array passed.
 	*

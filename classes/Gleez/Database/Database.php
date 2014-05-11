@@ -16,6 +16,11 @@
  */
 namespace Gleez\Database;
 
+// Grab the files for HHVM
+require_once __DIR__ . '/Driver/MySQLi.php';
+require_once __DIR__ . '/Expression.php';
+require_once __DIR__ . '/Result.php';
+
 abstract class Database{
 	// Query types
 	const SELECT =  'select';
@@ -120,7 +125,7 @@ abstract class Database{
 
 		return static::$instances[$name];
 	}
-	
+
 	// Character that is used to quote identifiers
 	protected $_identifier = '"';
 
@@ -446,45 +451,7 @@ abstract class Database{
 	{
 	    return $this->_query;
 	}
-	
-	/**
-	 * SET syntax
-	 *
-	 * @param  string   $name    The name of the variable
-	 * @param  mixed    $value   The value o the variable
-	 * @param  boolean  $global  True if the variable should be global, false otherwise
-	 *
-	 * @return  array  The result of the query
-	 */
-	public function setVariable($name, $value, $global = false)
-	{
-		$query = 'SET ';
 
-		if ($global) {
-			$query .= 'GLOBAL ';
-		}
-
-		$user_var = strpos($name, '@') === 0;
-
-		// if it has an @ it's a user variable and we can't wrap it
-		if ($user_var) {
-			$query .= $name.' ';
-		} else {
-			$query .= $this->getConnection()->quoteIdentifier($name).' ';
-		}
-
-		// user variables must always be processed as arrays
-		if ($user_var && ! is_array($value)) {
-			$query .= '= ('.$this->getConnection()->quote($value).')';
-		} elseif (is_array($value)) {
-			$query .= '= ('.implode(', ', $this->getConnection()->quoteArr($value)).')';
-		} else {
-			$query .= '= '.$this->getConnection()->quote($value);
-		}
-
-		$this->getConnection()->query($query);
-	}
-	
 	/**
 	 * Begins transaction
 	 */
@@ -507,45 +474,6 @@ abstract class Database{
 	public function transactionRollback()
 	{
 	    $this->getConnection()->query('ROLLBACK');
-	}
-	
-	/**
-	 * DESCRIBE syntax
-	 *
-	 * @param  string  $index  The name of the index
-	 *
-	 * @return  array  The result of the query
-	 */
-	public function describe($index)
-	{
-	    return $this->getConnection()->query('DESCRIBE '.$this->getConnection()->quoteIdentifier($index));
-	}
-	
-	/**
-	 * CREATE FUNCTION syntax
-	 *
-	 * @param  string  $udf_name
-	 * @param  string  $returns   Whether INT|BIGINT|FLOAT
-	 * @param  string  $so_name
-	 *
-	 * @return  array  The result of the query
-	 */
-	public function createFunction($udf_name, $returns, $so_name)
-	{
-	    return $this->getConnection()->query('CREATE FUNCTION '.$this->getConnection()->quoteIdentifier($udf_name).
-		' RETURNS '.$returns.' SONAME '.$this->getConnection()->quote($so_name));
-	}
-	
-	/**
-	 * DROP FUNCTION syntax
-	 *
-	 * @param  string  $udf_name
-	 *
-	 * @return  array  The result of the query
-	 */
-	public function dropFunction($udf_name)
-	{
-	    return $this->getConnection()->query('DROP FUNCTION '.$this->getConnection()->quoteIdentifier($udf_name));
 	}
 
 	/**
@@ -798,11 +726,10 @@ abstract class Database{
 					    $query .= $having['ext_operator'].' ';
 					    	if ($having['ext_operator'] != ')') {
 							$just_opened = true;
-					    }
+					 	}
 					}
-
-						continue;
-					}
+					continue;
+				}
 
 					if ($key > 0 && ! $just_opened) {
 						$query .= $having['ext_operator'].' '; // AND/OR
@@ -814,13 +741,13 @@ abstract class Database{
 						$query .= $this->getConnection()->quoteIdentifier($having['column']);
 						$query .=' BETWEEN ';
 						$query .= $this->getConnection()->quote($having['value'][0]).' AND '
-					    .$this->getConnection()->quote($having['value'][1]).' ';
+						.$this->getConnection()->quote($having['value'][1]).' ';
 					} else {
 					// id can't be quoted!
 					if ($having['column'] === 'id') {
-					    $query .= 'id ';
+						$query .= 'id ';
 					} else {
-					    $query .= $this->getConnection()->quoteIdentifier($having['column']).' ';
+						$query .= $this->getConnection()->quoteIdentifier($having['column']).' ';
 					}
 
 					if (strtoupper($having['operator']) === 'IN') {
@@ -843,84 +770,90 @@ abstract class Database{
 	public function compileSelect()
 	{
 		$query = '';
-		$quote_table = array($this->getConnection(), 'quoteTable');
+		
+		// Callback to quote columns
+		//$quoteColumn = array($this->getConnection(), 'quotecolumn');
 
+		// Callback to quote tables
+		$quoteTable = array($this->getConnection(), 'quoteTable');
+	
 		if ($this->type == 'select') {
-		    $query .= 'SELECT ';
+			$query .= 'SELECT ';
 
-		    if ( ! empty($this->distinct)) {
-			    // Select only unique results
-			    $query .= 'DISTINCT ';
-		    }
-		    
-		    if ( ! empty($this->select)) {
-			$query .= implode(', ', $this->getConnection()->quoteIdentifierArr($this->select)).' ';
-		    } else {
-			$query .= '* ';
-		    }
+			if ( ! empty($this->distinct)) {
+				// Select only unique results
+				$query .= 'DISTINCT ';
+			}
+
+			if ( empty($this->select)) {
+				$query .= '* ';
+			} else {
+				$query .= implode(', ', $this->getConnection()->quoteIdentifierArr($this->select)).' ';
+				//$query .= implode(', ', array_unique(array_map($quoteColumn, $this->select))).' ';
+			}
 		}
 
 		if ( ! empty($this->from)) {
-		    //$query .= 'FROM '.implode(', ', $this->getConnection()->quoteTable($this->from)).' ';
-		    $query .= 'FROM '.implode(', ', array_unique(array_map($quote_table, $this->from))).' ';
+			//$query .= 'FROM '.implode(', ', $this->getConnection()->quoteTable($this->from)).' ';
+			$query .= 'FROM '.implode(', ', array_unique(array_map($quoteTable, $this->from))).' ';
 		}
 
 		if ( ! empty($this->join)) {
 			// Add tables to join
 			$query .= $this->compileJoin().' ';
 		}
-		    
+
 		$query .= $this->compileWhere();
 
 		if ( ! empty($this->group_by)) {
-		    $query .= 'GROUP BY '.implode(', ', $this->getConnection()->quoteIdentifierArr($this->group_by)).' ';
+			$query .= 'GROUP BY '.implode(', ', $this->getConnection()->quoteIdentifierArr($this->group_by)).' ';
 		}
 
 		if ( ! empty($this->within_group_order_by)) {
-		    $query .= 'WITHIN GROUP ORDER BY ';
+			$query .= 'WITHIN GROUP ORDER BY ';
 
-		    $order_arr = array();
+			$order_arr = array();
 
-		    foreach ($this->within_group_order_by as $order) {
-			$order_sub = $this->getConnection()->quoteIdentifier($order['column']).' ';
+			foreach ($this->within_group_order_by as $order) {
+				$order_sub = $this->getConnection()->quoteIdentifier($order['column']).' ';
 
-			if ($order['direction'] !== null) {
-			    $order_sub .= ((strtolower($order['direction']) === 'desc') ? 'DESC' : 'ASC');
+				if ($order['direction'] !== null) {
+					$order_sub .= ((strtolower($order['direction']) === 'desc') ? 'DESC' : 'ASC');
+				}
+
+				$order_arr[] = $order_sub;
 			}
 
-			$order_arr[] = $order_sub;
-		    }
-
-		    $query .= implode(', ', $order_arr).' ';
+			$query .= implode(', ', $order_arr).' ';
 		}
 
-		    $query .= $this->compileHaving();
-		    
+		$query .= $this->compileHaving();
+
 		if ( ! empty($this->order_by)) {
-		    $query .= 'ORDER BY ';
+			$query .= 'ORDER BY ';
 
-		    $order_arr = array();
+			$order_arr = array();
 
-		    foreach ($this->order_by as $order) {
+			foreach ($this->order_by as $order) {
 			$order_sub = $this->getConnection()->quoteIdentifier($order['column']).' ';
 
 			if ($order['direction'] !== null) {
-			    $order_sub .= ((strtolower($order['direction']) === 'desc') ? 'DESC' : 'ASC');
+				$order_sub .= ((strtolower($order['direction']) === 'desc') ? 'DESC' : 'ASC');
 			}
 
 			$order_arr[] = $order_sub;
-		    }
+			}
 
-		    $query .= implode(', ', $order_arr).' ';
+			$query .= implode(', ', $order_arr).' ';
 		}
 
 		if ($this->limit !== null || $this->offset !== null) {
 			if ($this->offset === null) {
-			    $this->offset = 0;
+				$this->offset = 0;
 			}
 
 			if ($this->limit === null) {
-			    $this->limit = 9999999999999;
+				$this->limit = 9999999999999;
 			}
 
 			$query .= 'LIMIT '.((int) $this->offset).', '.((int) $this->limit).' ';
@@ -930,7 +863,7 @@ abstract class Database{
 			$options = array();
 
 			foreach ($this->options as $option) {
-			    $options[] = $this->getConnection()->quoteIdentifier($option['name'])
+				$options[] = $this->getConnection()->quoteIdentifier($option['name'])
 				.' = '.$this->getConnection()->quote($option['value']);
 			}
 
@@ -968,7 +901,7 @@ abstract class Database{
 			$query_sub = '';
 
 			foreach ($this->values as $value) {
-		    	$query_sub[] = '('.implode(', ', $this->getConnection()->quoteArr($value)).')';
+				$query_sub[] = '('.implode(', ', $this->getConnection()->quoteArr($value)).')';
 			}
 
 			$query .= implode(', ', $query_sub);
@@ -1049,16 +982,24 @@ abstract class Database{
 	 *
 	 * @return  \Gleez\Database\Database  The current object
 	 */
-	public function select(array $columns = NULL)
+	public function select($columns = NULL)
 	{
 		$this->reset();
 		$this->type = 'select';
-		if ( ! empty($columns))
-		{
-			// Set the initial columns
-			$this->select = $columns;
-		}
-	
+
+		//$this->select = array_merge($this->select, \func_get_args());
+		$this->select = $columns;
+
+		return $this;
+	}
+
+	public function selectArgs($columns = NULL)
+	{
+		$this->type = 'select';
+
+		$this->select = array_merge($this->select, \func_get_args());
+		//$this->select = \func_get_args();
+
 		return $this;
 	}
 	
@@ -1186,7 +1127,7 @@ abstract class Database{
 
 		return $this;
 	}
- 
+
 	/**
 	 * Adds "ON ..." conditions for the last created JOIN statement.
 	 *
@@ -1801,5 +1742,4 @@ abstract class Database{
 		
 		return $this;
 	}
-
 }
