@@ -456,47 +456,27 @@ class Driver_MySQLi extends Database {
 			{
 				$value = '('.$value->compile()->getCompiled().') ';
 			}
-		}
-		else
-		{
-			// Convert to a string
-			$value = (string) $value;
-
-			$value = str_replace($this->_identifier, $escaped_identifier, $value);
-
-			if ($value === '*')
-			{
-				return $value;
-			}
-			elseif (strpos($value, '.') !== FALSE)
-			{
-				$parts = explode('.', $value);
-
-				if ($prefix = $this->table_prefix())
-				{
-					// Get the offset of the table name, 2nd-to-last part
-					$offset = count($parts) - 2;
-
-					// Add the table prefix to the table name
-					$parts[$offset] = $prefix.$parts[$offset];
+		} elseif ($value === '*') {
+			
+			return $value;
+		} elseif (strpos($value, '.') !== FALSE) {
+			
+			$pieces = explode('.', $value);
+			$count  = count($pieces) ;
+			
+			foreach ($pieces as $key => $piece) {
+				if ($count > 1 AND $key == 0 AND ($prefix = $this->table_prefix())) {
+					$piece = $prefix.$piece;
 				}
-
-				foreach ($parts as & $part)
-				{
-					if ($part !== '*')
-					{
-						// Quote each of the parts
-						$part = $this->_identifier.$part.$this->_identifier;
-					}
-				}
-
-				$value = implode('.', $parts);
+				$pieces[$key] = ($piece != '*') ? '`'.$piece.'`' : $piece;
 			}
-			else
-			{
-				$value = $this->_identifier.$value.$this->_identifier;
-			}
+
+			$value = implode('.', $pieces);
+		} else {
+			
+			$value = $this->_identifier.$value.$this->_identifier;
 		}
+
 
 		if (isset($alias))
 		{
