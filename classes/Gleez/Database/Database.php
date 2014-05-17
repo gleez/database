@@ -597,7 +597,8 @@ abstract class Database{
 				}
 
 				// Quote each of the columns used for the condition
-				$conditions[] = $this->getConnection()->quoteIdentifier($c1).$op.' '.$this->quote($c2);
+				//$conditions[] = $this->getConnection()->quoteIdentifier($c1).$op.' '.$this->quote($c2);
+				$conditions[] = $this->getConnection()->quoteIdentifier($c1).$op.' '.$this->quoteIdentifier($c2);
 			}
 
 			// Concat the conditions "... AND ..."
@@ -1741,5 +1742,244 @@ abstract class Database{
 		$this->_query = NULL;
 		
 		return $this;
+	}
+	
+	/**
+	 * Wraps the input with identifiers when necessary.
+	 *
+	 * @param  \Gleez\Database\Expression|string  $value  The string to be quoted, or an Expression to leave it untouched
+	 *
+	 * @return  \Gleez\Database\Expression|string  The untouched Expression or the quoted string
+	 */
+	public function quoteIdentifier($value)
+	{ /*$fp = fopen("/home/www/projects/github.gleeztech.org/github/log1.txt", "a+");
+      fwrite($fp, print_r("lin2 244 post_data: ", true));
+      fwrite($fp, print_r($value, true));
+      fclose($fp);*/
+		// Identifiers are escaped by repeating them
+		$escaped_identifier = $this->_identifier.$this->_identifier;
+		
+		if (is_array($value))
+		{
+			list($value, $alias) = $value;
+			$alias = str_replace($this->_identifier, $escaped_identifier, $alias);
+		}
+		
+		if ($value instanceof \Gleez\Database\Expression) 
+		{
+			$value = $value->value();
+		} 
+		elseif ($value instanceof \Gleez\Database\Driver_MySQLi)
+		{
+			if ($value->last_query != NULL)
+			{
+				$value = '('.$value->last_query.') ';
+			}
+			else
+			{
+				$value = '('.$value->compile()->getCompiled().') ';
+			}
+		} elseif ($value === '*') {
+			
+			return $value;
+		} elseif (strpos($value, '.') !== FALSE) {
+			
+			$pieces = explode('.', $value);
+			$count  = count($pieces) ;
+			
+			foreach ($pieces as $key => $piece) {
+				if ($count > 1 AND $key == 0 AND ($prefix = $this->table_prefix())) {
+					$piece = $prefix.$piece;
+				}
+				$pieces[$key] = ($piece != '*') ? '`'.$piece.'`' : $piece;
+			}
+
+			$value = implode('.', $pieces);
+		} else {
+			
+			$value = $this->_identifier.$value.$this->_identifier;
+		}
+
+
+		if (isset($alias))
+		{
+			// Attach table prefix to alias
+			$value .= ' AS '.$this->_identifier.$alias.$this->_identifier;
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Calls $this->quoteIdentifier() on every element of the array passed.
+	 *
+	 * @param  array  $array  An array of strings to be quoted
+	 *
+	 * @return  array  The array of quoted strings
+	 */
+	public function quoteIdentifierArr(Array $array = array())
+	{
+	    $result = array();
+
+	    foreach ($array as $key => $item) {
+			$result[$key] = $this->quoteIdentifier($item);
+	    }
+
+	    return $result;
+	}
+
+	/**
+	 * Quote a database table name and adds the table prefix if needed.
+	 *
+	 *     $table = $db->quote_table($table);
+	 *
+	 * Objects passed to this function will be converted to strings.
+	 * [Database_Expression] objects will be compiled.
+	 * [Database_Query] objects will be compiled and converted to a sub-query.
+	 * All other objects will be converted using the `__toString` method.
+	 *
+	 * @param   mixed   $table  table name or array(table, alias)
+	 * @return  string
+	 * @uses    Database::quote_identifier
+	 * @uses    Database::table_prefix
+	 */
+	public function quoteTable($table)
+	{
+		// Identifiers are escaped by repeating them
+		$escaped_identifier = $this->_identifier.$this->_identifier;
+
+		if (is_array($table))
+		{
+			list($table, $alias) = $table;
+			$alias = str_replace($this->_identifier, $escaped_identifier, $alias);
+		}
+
+		if ($table instanceof \Gleez\Database\Expression) 
+		{
+			$table = $table->value();
+		}
+		elseif ($table instanceof \Gleez\Database\Driver_MySQLi) 
+		{
+			$table = '('.$table->compile()->getCompiled().') ';
+		}
+		else
+		{
+			// Convert to a string
+			$table = (string) $table;
+
+			$table = str_replace($this->_identifier, $escaped_identifier, $table);
+
+			if (strpos($table, '.') !== FALSE)
+			{
+				$parts = explode('.', $table);
+
+				if ($prefix = $this->table_prefix())
+				{
+					// Get the offset of the table name, last part
+					$offset = count($parts) - 1;
+
+					// Add the table prefix to the table name
+					$parts[$offset] = $prefix.$parts[$offset];
+				}
+
+				foreach ($parts as & $part)
+				{
+					// Quote each of the parts
+					$part = $this->_identifier.$part.$this->_identifier;
+				}
+
+				$table = implode('.', $parts);
+			}
+			else
+			{
+				// Add the table prefix
+				$table = $this->_identifier.$this->table_prefix().$table.$this->_identifier;
+			}
+		}
+
+		if (isset($alias))
+		{
+			// Attach table prefix to alias
+			$table .= ' AS '.$this->_identifier.$this->table_prefix().$alias.$this->_identifier;
+		}
+
+		return $table;
+	}
+
+	/**
+	 * Adds quotes around values when necessary.
+	 * Based on FuelPHP's quoting function.
+	 *
+	 * @param  \Gleez\Database\Expression|string  $value  The input string, eventually wrapped in an expression to leave it untouched
+	 *
+	 * @return  \Gleez\Database\Expression|string  The untouched Expression or the quoted string
+	 */
+	public function quote($value)
+	{
+		if ($value === NULL)
+		{
+			return 'NULL';
+		}
+		elseif ($value === TRUE)
+		{
+			return "'1'";
+		}
+		elseif ($value === FALSE)
+		{
+			return "'0'";
+		}
+		elseif ($value instanceof \Gleez\Database\Expression) 
+		{
+		    // Use the raw expression
+		    return $value->value();
+		}
+		elseif ($value instanceof \Gleez\Database\Driver_MySQLi) 
+		{
+			if ($value->last_query != NULL)
+			{
+
+				$value = '('.$value->last_query.') ';
+			}
+			else
+			{
+				$value = '('.$value->compile()->getCompiled().') ';
+			}
+			return $value;
+		}
+		elseif (is_int($value))
+		{
+			return (int) $value;
+		}
+		elseif (is_float($value))
+		{
+			// Convert to non-locale aware float to prevent possible commas
+			return sprintf('%F', $value);
+		}
+		elseif (is_array($value))
+		{
+	        // Supports MVA attributes
+	        return '('.implode(',', $this->quoteArr($value)).')';
+			//return '('.implode(', ', array_map(array($this, __FUNCTION__), $value)).')';
+	    }
+
+	    return $this->escape($value);
+	}
+
+	/**
+	* Calls $this->quote() on every element of the array passed.
+	*
+	* @param  array  $array  The array of strings to quote
+	*
+	* @return  array  The array of quotes strings
+	*/
+	public function quoteArr(Array $array = array())
+	{
+		$result = array();
+	
+		foreach ($array as $key => $item) {
+		    $result[$key] = $this->quote($item);
+		}
+	
+		return $result;
 	}
 }
