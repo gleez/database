@@ -9,7 +9,7 @@
  * well as quoting, escaping and other related functions.
  *
  * @package    Gleez\Database\Core
- * @version    2.0.0
+ * @version    2.0.1
  * @author     Gleez Team
  * @copyright  (c) 2011-2014 Gleez Technologies
  * @license    http://gleezcms.org/license  Gleez CMS License
@@ -597,7 +597,6 @@ abstract class Database{
 				}
 
 				// Quote each of the columns used for the condition
-				//$conditions[] = $this->getConnection()->quoteIdentifier($c1).$op.' '.$this->quote($c2);
 				$conditions[] = $this->getConnection()->quoteIdentifier($c1).$op.' '.$this->quoteIdentifier($c2);
 			}
 
@@ -771,9 +770,6 @@ abstract class Database{
 	public function compileSelect()
 	{
 		$query = '';
-		
-		// Callback to quote columns
-		//$quoteColumn = array($this->getConnection(), 'quotecolumn');
 
 		// Callback to quote tables
 		$quoteTable = array($this->getConnection(), 'quoteTable');
@@ -795,7 +791,6 @@ abstract class Database{
 		}
 
 		if ( ! empty($this->from)) {
-			//$query .= 'FROM '.implode(', ', $this->getConnection()->quoteTable($this->from)).' ';
 			$query .= 'FROM '.implode(', ', array_unique(array_map($quoteTable, $this->from))).' ';
 		}
 
@@ -987,8 +982,6 @@ abstract class Database{
 	{
 		$this->reset();
 		$this->type = 'select';
-
-		//$this->select = array_merge($this->select, \func_get_args());
 		$this->select = $columns;
 
 		return $this;
@@ -997,9 +990,7 @@ abstract class Database{
 	public function selectArgs($columns = NULL)
 	{
 		$this->type = 'select';
-
 		$this->select = array_merge($this->select, \func_get_args());
-		//$this->select = \func_get_args();
 
 		return $this;
 	}
@@ -1752,10 +1743,7 @@ abstract class Database{
 	 * @return  \Gleez\Database\Expression|string  The untouched Expression or the quoted string
 	 */
 	public function quoteIdentifier($value)
-	{ /*$fp = fopen("/home/www/projects/github.gleeztech.org/github/log1.txt", "a+");
-      fwrite($fp, print_r("lin2 244 post_data: ", true));
-      fwrite($fp, print_r($value, true));
-      fclose($fp);*/
+	{
 		// Identifiers are escaped by repeating them
 		$escaped_identifier = $this->_identifier.$this->_identifier;
 		
@@ -1780,7 +1768,6 @@ abstract class Database{
 				$value = '('.$value->compile()->getCompiled().') ';
 			}
 		} elseif ($value === '*') {
-			
 			return $value;
 		} elseif (strpos($value, '.') !== FALSE) {
 			
@@ -1796,7 +1783,6 @@ abstract class Database{
 
 			$value = implode('.', $pieces);
 		} else {
-			
 			$value = $this->_identifier.$value.$this->_identifier;
 		}
 
@@ -1908,7 +1894,6 @@ abstract class Database{
 
 	/**
 	 * Adds quotes around values when necessary.
-	 * Based on FuelPHP's quoting function.
 	 *
 	 * @param  \Gleez\Database\Expression|string  $value  The input string, eventually wrapped in an expression to leave it untouched
 	 *
@@ -1957,10 +1942,9 @@ abstract class Database{
 		}
 		elseif (is_array($value))
 		{
-	        // Supports MVA attributes
-	        return '('.implode(',', $this->quoteArr($value)).')';
-			//return '('.implode(', ', array_map(array($this, __FUNCTION__), $value)).')';
-	    }
+	        	// Supports MVA attributes
+	        	return '('.implode(',', $this->quoteArr($value)).')';
+	    	}
 
 	    return $this->escape($value);
 	}
