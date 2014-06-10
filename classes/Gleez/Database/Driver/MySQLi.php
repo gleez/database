@@ -381,50 +381,6 @@ class Driver_MySQLi extends Database {
 	}
 
 	/**
-	 * Set the value of a parameter in the query.
-	 *
-	 * @param   string   $param  parameter key to replace
-	 * @param   mixed    $value  value to use
-	 * @return  $this
-	 */
-	public function param($param, $value)
-	{
-		// Add or overload a new parameter
-		$this->_parameters[$param] = $value;
-
-		return $this;
-	}
-
-	/**
-	 * Bind a variable to a parameter in the query.
-	 *
-	 * @param   string  $param  parameter key to replace
-	 * @param   mixed   $var    variable to use
-	 * @return  $this
-	 */
-	public function bind($param, & $var)
-	{
-		// Bind a value to a variable
-		$this->_parameters[$param] =& $var;
-
-		return $this;
-	}
-
-	/**
-	 * Add multiple parameters to the query.
-	 *
-	 * @param   array  $params  list of parameters
-	 * @return  $this
-	 */
-	public function parameters(array $params)
-	{
-		// Merge the new parameters in
-		$this->_parameters = $params + $this->_parameters;
-
-		return $this;
-	}
-
-	/**
 	 * Get MySQL version
 	 *
 	 * Example:

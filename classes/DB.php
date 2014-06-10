@@ -20,24 +20,11 @@
  * @license    http://gleezcms.org/license  Gleez CMS License
  */
 use Gleez\Database\Database;
+use Gleez\Database\Query;
+use Gleez\Database\Expression;
 
 class DB {
 
-	/*protected static $_config = array(
-			'type' => 'MySQLi',
-			'connection' => array(
-					'hostname'   => 'localhost',
-					'database'   => '',
-					'username'   => '',
-					'password'   => '',
-					'persistent' => FALSE,
-				),
-			'table_prefix' => '',
-			'charset'      => 'utf8',
-			'caching'      => FALSE,
-			'profiling'    => FALSE,
-		);*/
-	
 	protected static $_config = NULL;
 	
 	/**
@@ -60,7 +47,7 @@ class DB {
 	 */
 	public static function query($type, $sql)
 	{
-		return Database::instance(NULL, self::$_config)->query($type, $sql);
+		//return new Query($type, $sql);
 	}
 
 	/**
@@ -78,7 +65,8 @@ class DB {
 	 */
 	public static function select($columns = NULL)
 	{
-		return Database::instance(NULL, self::$_config)->select(\func_get_args());
+		$query = new Query('select', NULL);
+		return $query->select(\func_get_args());
 	}
 
 	/**
@@ -92,7 +80,8 @@ class DB {
 	 */
 	public static function select_array(array $columns = NULL)
 	{
-		return Database::instance(NULL, $this->_config)->select($columns);
+		$query = new Query('select', NULL);
+		return $query->select($columns);
 	}
 
 	/**
@@ -107,7 +96,8 @@ class DB {
 	 */
 	public static function insert($table = NULL, array $columns = NULL)
 	{
-		return Database::instance(NULL, self::$_config)->insert($table, $columns);
+		$query = new Query('insert', NULL);
+		return $query->insert($table, $columns);
 	}
 
 	/**
@@ -121,7 +111,8 @@ class DB {
 	 */
 	public static function update($table = NULL)
 	{
-		return Database::instance(NULL, self::$_config)->update($table);
+		$query = new Query('update', NULL);
+		return $query->update($table);
 	}
 
 	/**
@@ -135,7 +126,8 @@ class DB {
 	 */
 	public static function delete($table = NULL)
 	{
-		return Database::instance(NULL, self::$_config)->delete($table);
+		$query = new Query('delete', NULL);
+		return $query->delete($table);
 	}
 
 	/**
@@ -152,7 +144,7 @@ class DB {
 	 */
 	public static function expr($string, $parameters = array())
 	{
-		return Database::instance(NULL, self::$_config)->expr($string);
+		return new Expression($string);
 	}
 
 	public static function version()
