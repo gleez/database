@@ -1530,10 +1530,10 @@ class Query {
 	public function reset()
 	{
 		$this->select = array();
-		$this->from = array();
-		$this->using = array();
+		$this->from   = array();
+		$this->using  = array();
 		$this->join = array();
-		$this->join_on = array();
+		$this->join_on  = array();
 		$this->join_and = array();
 		$this->where = array();
 		$this->match = array();
@@ -1544,7 +1544,7 @@ class Query {
 		$this->offset = null;
 		$this->into = null;
 		$this->columns = array();
-		$this->values = array();
+		$this->values  = array();
 		$this->set = array();
 		$this->options = array();
 		$this->limit = null;

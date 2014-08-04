@@ -14,7 +14,7 @@
  * You pass the same parameters to these functions as you pass to the objects they return.
  *
  * @package    Gleez\Database
- * @version    2.0.0
+ * @version    2.1.0
  * @author     Gleez Team
  * @copyright  (c) 2011-2014 Gleez Technologies
  * @license    http://gleezcms.org/license  Gleez CMS License
@@ -47,7 +47,7 @@ class DB {
 	 */
 	public static function query($type, $sql)
 	{
-		//return new Query($type, $sql);
+		return new Query($type, $sql);
 	}
 
 	/**
