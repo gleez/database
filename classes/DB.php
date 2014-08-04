@@ -43,11 +43,12 @@ class DB {
 	 *
 	 * @param   integer  $type  type: Database::SELECT, Database::UPDATE, etc
 	 * @param   string   $sql   SQL statement
-	 * @return  Database_Query
+	 *
+	 * @return  Query
 	 */
 	public static function query($type, $sql)
 	{
-		return new Query($type, $sql);
+		return Database::instance()->query($type, $sql);
 	}
 
 	/**

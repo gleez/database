@@ -191,7 +191,7 @@ class Query {
 	 */
 	public function __construct($type, $sql)
 	{
-		$this->_type = $type;
+		$this->type = $type;
 		$this->_query = $sql;
 	}
 
