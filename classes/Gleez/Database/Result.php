@@ -40,7 +40,7 @@ class Result implements \Countable, \Iterator, \SeekableIterator, \ArrayAccess {
 	protected $_internal_row = 0;
 
 	/**
-	 * @var ReflectionClass
+	 * @var \ReflectionClass
 	 */
 	protected $_reflect_class = NULL;
 
@@ -51,7 +51,6 @@ class Result implements \Countable, \Iterator, \SeekableIterator, \ArrayAccess {
 	 * @param   string  $sql        SQL query
 	 * @param   mixed   $as_object
 	 * @param   array   $params
-	 * @return  void
 	 */
 	public function __construct($result, $sql, $as_object = FALSE, array $params = NULL)
 	{
@@ -93,11 +92,6 @@ class Result implements \Countable, \Iterator, \SeekableIterator, \ArrayAccess {
 
 	/**
 	 * Get a cached database result from the current result iterator.
-	 *
-	 *     $cachable = serialize($result->cached());
-	 *
-	 * @return  Database_Result_Cached
-	 * @since   3.0.5
 	 */
 	public function cached()
 	{
@@ -290,7 +284,7 @@ class Result implements \Countable, \Iterator, \SeekableIterator, \ArrayAccess {
 	 * @param   int     $offset
 	 * @param   mixed   $value
 	 * @return  void
-	 * @throws  Gleez_Exception
+	 * @throws  \Gleez\Database\DatabaseException
 	 */
 	final public function offsetSet($offset, $value)
 	{
@@ -304,7 +298,7 @@ class Result implements \Countable, \Iterator, \SeekableIterator, \ArrayAccess {
 	 *
 	 * @param   int     $offset
 	 * @return  void
-	 * @throws  Gleez_Exception
+	 * @throws  \Gleez\Database\DatabaseException
 	 */
 	final public function offsetUnset($offset)
 	{
@@ -468,5 +462,4 @@ class Result implements \Countable, \Iterator, \SeekableIterator, \ArrayAccess {
 
 		return $row;
 	}
-
 }

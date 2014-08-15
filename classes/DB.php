@@ -63,7 +63,9 @@ class DB {
 	/**
 	 * Create a new Query object
 	 *
-	 * Each argument will be treated as a column. To generate a `foo AS bar` alias, use an array.
+	 * Each argument will be treated as a column.
+	 * To generate a `foo AS bar` alias, use an array.
+	 *
 	 * Example:<br>
 	 * <code>
 	 * // SELECT id, username
@@ -72,6 +74,7 @@ class DB {
 	 * $query = DB::select(array('id', 'user_id'));
 	 * </code>
 	 *
+	 * @param string $columns Query string [Optional]
 	 * @return \Gleez\Database\Query
 	 */
 	public static function select($columns = NULL)
