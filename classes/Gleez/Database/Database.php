@@ -284,7 +284,7 @@ abstract class Database {
 	 */
 	public function transactionBegin()
 	{
-		$this->getConnection()->query('BEGIN');
+		$this->_connection->query('BEGIN');
 	}
 
 	/**
@@ -292,7 +292,7 @@ abstract class Database {
 	 */
 	public function transactionCommit()
 	{
-		$this->getConnection()->query('COMMIT');
+		$this->_connection->query('COMMIT');
 	}
 
 	/**
@@ -300,8 +300,26 @@ abstract class Database {
 	 */
 	public function transactionRollback()
 	{
-		$this->getConnection()->query('ROLLBACK');
+		$this->_connection->query('ROLLBACK');
 	}
+
+	/**
+	 * Perform an SQL query of the given type
+	 *
+	 * @param   integer  $type       Database::SELECT, Database::INSERT, etc
+	 * @param   string   $sql        SQL query
+	 * @param   boolean  $asObject   Result object class string, TRUE for stdClass, FALSE for assoc array [Optional]
+	 * @param   array    $params     Object construct parameters for result class [Optional]
+	 *
+	 * @return Result
+	 */
+	abstract public function query($type, $sql, $asObject = false, array $params = null);
+
+	/**
+	 * Get DBMS version
+	 * @return mixed
+	 */
+	abstract public function version();
 
 	/**
 	 * Count the number of records in a table.
@@ -550,12 +568,12 @@ abstract class Database {
 		{
 			return "'0'";
 		}
-		elseif ($value instanceof \Gleez\Database\Expression)
+		elseif ($value instanceof Expression)
 		{
 			// Use the raw expression
 			return $value->value();
 		}
-		elseif ($value instanceof \Gleez\Database\Query)
+		elseif ($value instanceof Query)
 		{
 			return '('.$value->compile($this).') ';
 		}

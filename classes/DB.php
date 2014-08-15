@@ -10,6 +10,7 @@
 use Gleez\Database\Database;
 use Gleez\Database\Query;
 use Gleez\Database\Expression;
+use Gleez\Database\Result;
 
 /**
  * Provides a shortcut to get Database related objects for [making queries](../database/query).
@@ -39,7 +40,7 @@ class DB {
 	 * Example:<br>
 	 * <code>
 	 * // Create a new SELECT query
-	 * $query = DB::query(Database::SELECT, 'SELECT * FROM users');
+	 * $query = DB:query(\Gleez\Database\Database::SELECT, 'SELECT * FROM gl_users');
 	 *
 	 * // Create a new DELETE query
 	 * $query = DB::query(Database::DELETE, 'DELETE FROM users WHERE id = 5');
@@ -53,7 +54,7 @@ class DB {
 	 * @param   integer  $type  type: Database::SELECT, Database::UPDATE, etc
 	 * @param   string   $sql   SQL statement
 	 *
-	 * @return  Query
+	 * @return  Result
 	 */
 	public static function query($type, $sql)
 	{

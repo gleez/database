@@ -259,7 +259,7 @@ class Driver_MySQLi extends Database {
 	 *
 	 * @throws  \Gleez\Database\DatabaseException
 	 *
-	 * @return  object   Database_Result for SELECT queries
+	 * @return  \Gleez\Database\Result  Database result for SELECT queries
 	 * @return  array    List (insert id, row count) for INSERT queries
 	 * @return  integer  Number of affected rows for all other queries
 	 */
