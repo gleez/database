@@ -1,5 +1,17 @@
 <?php
 /**
+ * Gleez CMS (http://gleezcms.org)
+ *
+ * @link https://github.com/gleez/cms Canonical source repository
+ * @copyright Copyright (c) 2011-2014 Gleez Technologies
+ * @license http://gleezcms.org/license Gleez CMS License
+ */
+
+use Gleez\Database\Database;
+use Gleez\Database\Query;
+use Gleez\Database\Expression;
+
+/**
  * Provides a shortcut to get Database related objects for [making queries](../database/query).
  *
  * Shortcut     | Returned Object
@@ -13,16 +25,10 @@
  *
  * You pass the same parameters to these functions as you pass to the objects they return.
  *
- * @package    Gleez\Database
- * @version    2.1.0
- * @author     Gleez Team
- * @copyright  (c) 2011-2014 Gleez Technologies
- * @license    http://gleezcms.org/license  Gleez CMS License
+ * @package Gleez\Database
+ * @version 2.1.0
+ * @author Gleez Team
  */
-use Gleez\Database\Database;
-use Gleez\Database\Query;
-use Gleez\Database\Expression;
-
 class DB {
 
 	protected static $_config = NULL;

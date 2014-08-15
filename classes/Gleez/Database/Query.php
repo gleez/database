@@ -1,15 +1,21 @@
 <?php
 /**
- * MySQLi database Expression
+ * Gleez CMS (http://gleezcms.org)
  *
- * @package    Gleez\Database
- * @version    2.0.0
- * @author     Gleez Team
- * @copyright  (c) 2011-2014 Gleez Technologies
- * @license    http://gleezcms.org/license  Gleez CMS License
+ * @link https://github.com/gleez/cms Canonical source repository
+ * @copyright Copyright (c) 2011-2014 Gleez Technologies
+ * @license http://gleezcms.org/license Gleez CMS License
  */
+
 namespace Gleez\Database;
 
+/**
+ * MySQLi database Expression
+ *
+ * @package Gleez\Database
+ * @version 2.0.0
+ * @author Gleez Team
+ */
 class Query {
 
 	// SQL statement

@@ -1,19 +1,12 @@
 <?php
 /**
- * Database connection wrapper/helper.
+ * Gleez CMS (http://gleezcms.org)
  *
- * You may get a database instance using `Gleez\Database\Database::instance('name')` where
- * name is the [config](database/config) group.
- *
- * This class provides connection instance management via Database Drivers, as
- * well as quoting, escaping and other related functions.
- *
- * @package    Gleez\Database\Core
- * @version    2.2.1
- * @author     Gleez Team
- * @copyright  (c) 2011-2014 Gleez Technologies
- * @license    http://gleezcms.org/license  Gleez CMS License
+ * @link https://github.com/gleez/cms Canonical source repository
+ * @copyright Copyright (c) 2011-2014 Gleez Technologies
+ * @license http://gleezcms.org/license Gleez CMS License
  */
+
 namespace Gleez\Database;
 
 // Grab the files for HHVM
@@ -25,6 +18,19 @@ require_once __DIR__ . '/Query.php';
 class ConnectionException extends \Exception {};
 class DatabaseException extends \Exception {};
 
+/**
+ * Database connection wrapper/helper.
+ *
+ * You may get a database instance using `Gleez\Database\Database::instance('name')` where
+ * name is the [config](database/config) group.
+ *
+ * This class provides connection instance management via Database Drivers, as
+ * well as quoting, escaping and other related functions.
+ *
+ * @package Gleez\Database\Core
+ * @version 2.2.1
+ * @author Gleez Team
+ */
 abstract class Database {
 	// Query types
 	const SELECT =  'select';
