@@ -2,7 +2,7 @@
 /**
  * Gleez CMS (http://gleezcms.org)
  *
- * @link https://github.com/gleez/cms Canonical source repository
+ * @link https://github.com/gleez/database Canonical source repository
  * @copyright Copyright (c) 2011-2014 Gleez Technologies
  * @license http://gleezcms.org/license Gleez CMS License
  */
@@ -13,11 +13,13 @@ use Gleez\Database\Expression;
 use Gleez\Database\Result;
 
 /**
- * Provides a shortcut to get Database related objects for [making queries](../database/query).
+ * Gleez DB
+ *
+ * Provides a helpers to get Database related objects for [making queries](../database/query).
  *
  * Shortcut     | Returned Object
  * -------------|---------------
- * [`DB::query()`](#query)   | [Database_Query]
+ * [`DB::query()`](#query)   | [Gleez\Database\Result]
  * [`DB::insert()`](#insert) | [Database_Query_Builder_Insert]
  * [`DB::select()`](#select),<br />[`DB::select_array()`](#select_array) | [Database_Query_Builder_Select]
  * [`DB::update()`](#update) | [Database_Query_Builder_Update]
@@ -27,12 +29,17 @@ use Gleez\Database\Result;
  * You pass the same parameters to these functions as you pass to the objects they return.
  *
  * @package Gleez\Database
- * @version 2.1.0
+ * @version 2.1.1
  * @author Gleez Team
  */
 class DB {
 
 	protected static $_config = NULL;
+
+	/**
+	 * Avoid directly creating
+	 */
+	private function __construct() {}
 
 	/**
 	 * Create a new Query object.
@@ -54,7 +61,7 @@ class DB {
 	 * @param   integer  $type  type: Database::SELECT, Database::UPDATE, etc
 	 * @param   string   $sql   SQL statement
 	 *
-	 * @return  Result
+	 * @return  Gleez\Database\Result
 	 */
 	public static function query($type, $sql)
 	{
