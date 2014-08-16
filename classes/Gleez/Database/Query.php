@@ -227,7 +227,7 @@ class Query {
 	 * @param   bool|string  $as_object      Return results as associative arrays or objects? [Optional]
 	 * @param   array        $object_params  Parameters for object results [Optional]
 	 *
-	 * @return  mixed  The result of the query
+	 * @return  \Gleez\Database\Result  The result of the query
 	 */
 	public function execute($db = NULL, $as_object = NULL, $object_params = NULL)
 	{

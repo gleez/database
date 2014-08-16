@@ -10,7 +10,6 @@
 use Gleez\Database\Database;
 use Gleez\Database\Query;
 use Gleez\Database\Expression;
-use Gleez\Database\Result;
 
 /**
  * Gleez DB
@@ -20,7 +19,7 @@ use Gleez\Database\Result;
  * Shortcut     | Returned Object
  * -------------|---------------
  * [`DB::query()`](#query)   | [Gleez\Database\Result]
- * [`DB::insert()`](#insert) | [Database_Query_Builder_Insert]
+ * [`DB::insert()`](#insert) | [Gleez\Database\Query]
  * [`DB::select()`](#select),<br />[`DB::select_array()`](#select_array) | [Database_Query_Builder_Select]
  * [`DB::update()`](#update) | [Database_Query_Builder_Update]
  * [`DB::delete()`](#delete) | [Database_Query_Builder_Delete]
@@ -47,7 +46,7 @@ class DB {
 	 * Example:<br>
 	 * <code>
 	 * // Create a new SELECT query
-	 * $query = DB:query(\Gleez\Database\Database::SELECT, 'SELECT * FROM gl_users');
+	 * $query = DB:query(\Gleez\Database\Database::SELECT, 'SELECT * FROM users');
 	 *
 	 * // Create a new DELETE query
 	 * $query = DB::query(Database::DELETE, 'DELETE FROM users WHERE id = 5');
@@ -61,7 +60,7 @@ class DB {
 	 * @param   integer  $type  type: Database::SELECT, Database::UPDATE, etc
 	 * @param   string   $sql   SQL statement
 	 *
-	 * @return  Gleez\Database\Result
+	 * @return  \Gleez\Database\Result
 	 */
 	public static function query($type, $sql)
 	{

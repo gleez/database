@@ -56,6 +56,12 @@ abstract class Database {
 	protected static $_readonly = array();
 
 	/**
+	 * Character that is used to quote identifiers
+	 * @var string
+	 */
+	protected $_identifier = '"';
+
+	/**
 	 * Ready for use queries
 	 *
 	 * @var  array
@@ -237,7 +243,7 @@ abstract class Database {
 	/**
 	 * Returns the currently attached connection
 	 *
-	 * @returns \Gleez\Database\Connection
+	 * @returns \Gleez\Database\Driver\DriverInterface
 	 */
 	public function getConnection()
 	{
@@ -311,7 +317,7 @@ abstract class Database {
 	 * @param   boolean  $asObject   Result object class string, TRUE for stdClass, FALSE for assoc array [Optional]
 	 * @param   array    $params     Object construct parameters for result class [Optional]
 	 *
-	 * @return Result
+	 * @return \Gleez\Database\Result
 	 */
 	abstract public function query($type, $sql, $asObject = false, array $params = null);
 
@@ -488,18 +494,17 @@ abstract class Database {
 	{
 		// Identifiers are escaped by repeating them
 		$escaped_identifier = $this->_identifier.$this->_identifier;
-
 		if (is_array($table))
 		{
 			list($table, $alias) = $table;
 			$alias = str_replace($this->_identifier, $escaped_identifier, $alias);
 		}
 
-		if ($table instanceof \Gleez\Database\Expression)
+		if ($table instanceof Expression)
 		{
 			$table = $table->value();
 		}
-		elseif ($table instanceof \Gleez\Database\Query)
+		elseif ($table instanceof Query)
 		{
 			$table = '('.$table->compile($this).') ';
 		}

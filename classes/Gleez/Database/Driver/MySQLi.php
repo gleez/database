@@ -9,6 +9,8 @@
 
 namespace Gleez\Database;
 
+use Gleez\Database\Driver\DriverInterface;
+
 /**
  * MySQLi database connection driver
  *
@@ -18,10 +20,10 @@ namespace Gleez\Database;
  * - MySQL 5.0 or higher
  *
  * @package Gleez\Database\Drivers
- * @version 2.1.0
+ * @version 2.1.1
  * @author Gleez Team
  */
-class Driver_MySQLi extends Database {
+class Driver_MySQLi extends Database implements DriverInterface {
 
 	/**
 	 * Database in use by each connection
