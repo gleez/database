@@ -107,15 +107,8 @@ class Driver_MySQLi extends Database implements DriverInterface {
 
 		try
 		{
-			if ($persistent == TRUE)
-			{
-				// See http://www.php.net/manual/en/mysqli.persistconns.php
-				$this->_connection = new \MySQLi('p:'.$hostname, $username, $password, $database, (int)$port, $socket);
-			}
-			else
-			{
-				$this->_connection = new \MySQLi($hostname, $username, $password, $database, (int)$port, $socket);
-			}
+			// See http://www.php.net/manual/en/mysqli.persistconns.php
+			$this->_connection = new \MySQLi(($persistent ? 'p:' : '') . $hostname, $username, $password, $database, (int)$port, $socket);
 		}
 		catch (\Exception $e)
 		{
@@ -345,7 +338,7 @@ class Driver_MySQLi extends Database implements DriverInterface {
 		// Make sure the database is connected
 		$this->_connection or $this->connect();
 
-		return (bool) $this->_connection->query('COMMIT');
+		return $this->transactionCommit();
 	}
 
 	/**
@@ -358,7 +351,7 @@ class Driver_MySQLi extends Database implements DriverInterface {
 		// Make sure the database is connected
 		$this->_connection or $this->connect();
 
-		return (bool) $this->_connection->query('ROLLBACK');
+		return $this->transactionRollback();
 	}
 
 	/**
@@ -371,14 +364,14 @@ class Driver_MySQLi extends Database implements DriverInterface {
 	 */
 	public function escape($value)
 	{
-	    //$this->ping();
-	    $this->_connection OR $this->connect();
+		//$this->ping();
+		$this->_connection OR $this->connect();
 
-	    if (($value = $this->_connection->real_escape_string((string) $value)) === false) {
-	        throw new DatabaseException($this->_connection->error, $this->_connection->errno);
-	    }
+		if (($value = $this->_connection->real_escape_string((string) $value)) === false) {
+			throw new DatabaseException($this->_connection->error, $this->_connection->errno);
+		}
 
-	    // SQL standard is to use single-quotes for all values
+		// SQL standard is to use single-quotes for all values
 		return "'$value'";
 	}
 

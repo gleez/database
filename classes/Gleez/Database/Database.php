@@ -287,26 +287,32 @@ abstract class Database {
 
 	/**
 	 * Begins transaction
+	 *
+	 * @return bool
 	 */
 	public function transactionBegin()
 	{
-		$this->_connection->query('BEGIN');
+		return (bool) $this->_connection->query('BEGIN');
 	}
 
 	/**
 	 * Commits transaction
+	 *
+	 * @return bool
 	 */
 	public function transactionCommit()
 	{
-		$this->_connection->query('COMMIT');
+		return (bool) $this->_connection->query('COMMIT');
 	}
 
 	/**
 	 * Rollbacks transaction
+	 *
+	 * @return bool
 	 */
 	public function transactionRollback()
 	{
-		$this->_connection->query('ROLLBACK');
+		return (bool) $this->_connection->query('ROLLBACK');
 	}
 
 	/**
