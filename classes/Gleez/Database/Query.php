@@ -2,7 +2,7 @@
 /**
  * Gleez CMS (http://gleezcms.org)
  *
- * @link https://github.com/gleez/database Canonical source repository
+ * @link https://github.com/gleez/cms Canonical source repository
  * @copyright Copyright (c) 2011-2014 Gleez Technologies
  * @license http://gleezcms.org/license Gleez CMS License
  */
@@ -10,13 +10,14 @@
 namespace Gleez\Database;
 
 /**
- * MySQLi database Expression
+ * MySQLi Database Expression
  *
  * @package Gleez\Database
  * @version 2.0.0
- * @author Gleez Team
+ * @author  Gleez Team
  */
-class Query {
+class Query
+{
 
 	// SQL statement
 	protected $_query;
@@ -256,16 +257,14 @@ class Query {
 	/**
 	 * Runs the compile function
 	 *
-	 * @param   object  $db  The database instance [Optional]
+	 * @param   \Gleez\Database\Database $db  The database instance [Optional]
 	 * @return  string  The current object
 	 */
-	public function compile($db = NULL)
+	public function compile(Database $db = null)
 	{
-		if ( ! is_object($db))
-		{
+		if (null == $db)
 			// Get the database instance
 			$db = Database::instance($db);
-		}
 
 		switch ($this->type) {
 			case 'select':
@@ -311,7 +310,7 @@ class Query {
 	/**
 	 * Compile the SQL partial for a JOIN statement and return it.
 	 *
-	 * @param   mixed  $db  Database instance or name of instance
+	 * @param   \Gleez\Database\Database  $db  Database instance or name of instance
 	 * @return  string
 	 */
 	protected function compileJoin($db)
@@ -389,7 +388,7 @@ class Query {
 	 * It interacts with the MATCH() and of course isn't usable stand-alone
 	 * Used by: SELECT, DELETE, UPDATE
 	 *
-	 * @param   object  $db  The database instance
+	 * @param   \Gleez\Database\Database  $db  The database instance
 	 * @return  string  The compiled WHERE
 	 */
 	public function compileWhere($db)
@@ -402,7 +401,7 @@ class Query {
 	 * It interacts with the MATCH() and of course isn't usable stand-alone
 	 * Used by: SELECT, DELETE, UPDATE
 	 *
-	 * @param   object  $db  The database instance
+	 * @param   \Gleez\Database\Database  $db  The database instance
 	 * @return  string  The compiled WHERE
 	 */
 	public function compileHaving($db)
@@ -410,6 +409,12 @@ class Query {
 		return $this->_compileWhereHaving($db, $type = 'having');
 	}
 
+	/**
+	 * @param \Gleez\Database\Database $db
+	 * @param string $type
+	 *
+	 * @return string
+	 */
 	private function _compileWhereHaving($db, $type = 'where')
 	{
 		$query = '';
@@ -512,10 +517,10 @@ class Query {
 	/**
 	 * Compiles the statements for SELECT
 	 *
-	 * @param   object  $db  The database instance
+	 * @param   \Gleez\Database\Database  $db  The database instance
 	 * @return  \Gleez\Database\Query  The current object
 	 */
-	public function compileSelect($db)
+	public function compileSelect(Database $db)
 	{
 		$query = '';
 
@@ -622,10 +627,10 @@ class Query {
 	/**
 	 * Compiles the statements for INSERT or REPLACE
 	 *
-	 * @param   object  $db  The database instance
+	 * @param   \Gleez\Database\Database  $db  The database instance
 	 * @return  \Gleez\Database\Query  The current object
 	 */
-	public function compileInsert($db)
+	public function compileInsert(Database $db)
 	{
 		if ($this->type == 'insert') {
 			$query = 'INSERT ';
@@ -660,10 +665,10 @@ class Query {
 	/**
 	 * Compiles the statements for UPDATE
 	 *
-	 * @param   object  $db  The database instance
+	 * @param   \Gleez\Database\Database  $db  The database instance
 	 * @return  \Gleez\Database\Query  The current object
 	 */
-	public function compileUpdate($db)
+	public function compileUpdate(Database $db)
 	{
 		$query = 'UPDATE ';
 
@@ -710,10 +715,10 @@ class Query {
 	/**
 	 * Compiles the statements for DELETE
 	 *
-	 * @param   object  $db  The database instance
+	 * @param   \Gleez\Database\Database  $db  The database instance
 	 * @return  \Gleez\Database\Query  The current object
 	 */
-	public function compileDelete($db)
+	public function compileDelete(Database $db)
 	{
 		$query = 'DELETE ';
 

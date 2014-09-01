@@ -2,7 +2,7 @@
 /**
  * Gleez CMS (http://gleezcms.org)
  *
- * @link https://github.com/gleez/database Canonical source repository
+ * @link https://github.com/gleez/cms Canonical source repository
  * @copyright Copyright (c) 2011-2014 Gleez Technologies
  * @license http://gleezcms.org/license Gleez CMS License
  */
@@ -21,22 +21,23 @@ class DatabaseException extends \Exception {};
 /**
  * Database connection wrapper/helper.
  *
- * You may get a database instance using `Gleez\Database\Database::instance('name')` where
- * name is the [config](database/config) group.
+ * You may get a database instance using Database::instance('name') where
+ * name is the config group.
  *
  * This class provides connection instance management via Database Drivers, as
  * well as quoting, escaping and other related functions.
  *
  * @package Gleez\Database\Core
  * @version 2.2.1
- * @author Gleez Team
+ * @author  Gleez Team
  */
-abstract class Database {
+abstract class Database
+{
 	// Query types
-	const SELECT =  'select';
-	const INSERT =  'insert';
-	const UPDATE =  'update';
-	const DELETE =  'delete';
+	const SELECT = 'select';
+	const INSERT = 'insert';
+	const UPDATE = 'update';
+	const DELETE = 'delete';
 
 	/**
 	 * Default instance name
@@ -82,16 +83,14 @@ abstract class Database {
 	 * If configuration is not specified, it will be loaded from the database
 	 * configuration file using the same group as the name.
 	 *
-	 * ### Examples
-	 *
 	 * Load the default database:<br>
 	 * <code>
-	 *   $db = Database::instance();
+	 * $db = Database::instance();
 	 * </code>
 	 *
 	 * Create a custom configured instance:<br>
 	 * <code>
-	 *   $db = Database::instance('custom', $config);
+	 * $db = Database::instance('custom', $config);
 	 * </code>
 	 *
 	 * @param   string 		$name      Instance name [Optional]
@@ -395,6 +394,20 @@ abstract class Database {
 	abstract public function list_columns($table, $like = NULL, $add_prefix = TRUE);
 
 	/**
+	 * Sanitize a string by escaping characters that could cause an SQL injection attack.
+	 *
+	 * Example:<br>
+	 * <code>
+	 * $value = $db->escape('any string');
+	 * </code>
+	 *
+	 * @param  string $value Value to quote
+	 *
+	 * @return string
+	 */
+	abstract public function escape($value);
+
+	/**
 	 * Return the table prefix defined in the current configuration.
 	 *
 	 *     $prefix = $db->table_prefix();
@@ -424,11 +437,11 @@ abstract class Database {
 			$alias = str_replace($this->_identifier, $escaped_identifier, $alias);
 		}
 
-		if ($value instanceof \Gleez\Database\Expression)
+		if ($value instanceof Expression)
 		{
 			$value = $value->value();
 		}
-		elseif ($value instanceof \Gleez\Database\Query)
+		elseif ($value instanceof Query)
 		{
 			$value = '('.$value->compile($this).') ';
 		}

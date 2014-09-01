@@ -2,19 +2,17 @@
 /**
  * Gleez CMS (http://gleezcms.org)
  *
- * @link https://github.com/gleez/database Canonical source repository
+ * @link https://github.com/gleez/cms Canonical source repository
  * @copyright Copyright (c) 2011-2014 Gleez Technologies
  * @license http://gleezcms.org/license Gleez CMS License
  */
 
 namespace Gleez\Database;
 
-use Gleez\Database\Driver\DriverInterface;
-
 /**
  * MySQLi database connection driver
  *
- * ### System Requirements
+ * System Requirements:
  *
  * - PHP 5.3.9 or higher
  * - MySQL 5.0 or higher
@@ -23,7 +21,8 @@ use Gleez\Database\Driver\DriverInterface;
  * @version 2.1.1
  * @author Gleez Team
  */
-class Driver_MySQLi extends Database implements DriverInterface {
+class Driver_MySQLi extends Database implements Driver\DriverInterface
+{
 
 	/**
 	 * Database in use by each connection
