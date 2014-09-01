@@ -17,7 +17,7 @@ namespace Gleez\Database;
  * - PHP 5.3.9 or higher
  * - MySQL 5.0 or higher
  *
- * @package Gleez\Database\Drivers
+ * @package Gleez\Database\Driver
  * @version 2.1.1
  * @author Gleez Team
  */

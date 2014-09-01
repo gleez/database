@@ -174,7 +174,7 @@ class DB
 	 * $expression = DB::expr('COUNT(users.id)');
 	 * $query = DB::update('users')->set(array('login_count' => DB::expr('login_count + 1')))->where('id', '=', $id);
 	 * $users = ORM::factory('user')->where(DB::expr("BINARY `hash`"), '=', $hash)->find();
-	 * <code>
+	 * </code>
 	 *
 	 * @param   string  $string      Expression
 	 * @param   array   $parameters  Parameters [Optional]

@@ -27,7 +27,7 @@ class DatabaseException extends \Exception {};
  * This class provides connection instance management via Database Drivers, as
  * well as quoting, escaping and other related functions.
  *
- * @package Gleez\Database\Core
+ * @package Gleez\Database
  * @version 2.2.1
  * @author  Gleez Team
  */
