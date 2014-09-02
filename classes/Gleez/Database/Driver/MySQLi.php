@@ -2,28 +2,27 @@
 /**
  * Gleez CMS (http://gleezcms.org)
  *
- * @link https://github.com/gleez/database Canonical source repository
+ * @link https://github.com/gleez/cms Canonical source repository
  * @copyright Copyright (c) 2011-2014 Gleez Technologies
  * @license http://gleezcms.org/license Gleez CMS License
  */
 
 namespace Gleez\Database;
 
-use Gleez\Database\Driver\DriverInterface;
-
 /**
  * MySQLi database connection driver
  *
- * ### System Requirements
+ * System Requirements:
  *
  * - PHP 5.3.9 or higher
  * - MySQL 5.0 or higher
  *
- * @package Gleez\Database\Drivers
+ * @package Gleez\Database\Driver
  * @version 2.1.1
  * @author Gleez Team
  */
-class Driver_MySQLi extends Database implements DriverInterface {
+class Driver_MySQLi extends Database implements Driver\DriverInterface
+{
 
 	/**
 	 * Database in use by each connection
@@ -107,15 +106,8 @@ class Driver_MySQLi extends Database implements DriverInterface {
 
 		try
 		{
-			if ($persistent == TRUE)
-			{
-				// See http://www.php.net/manual/en/mysqli.persistconns.php
-				$this->_connection = new \MySQLi('p:'.$hostname, $username, $password, $database, (int)$port, $socket);
-			}
-			else
-			{
-				$this->_connection = new \MySQLi($hostname, $username, $password, $database, (int)$port, $socket);
-			}
+			// See http://www.php.net/manual/en/mysqli.persistconns.php
+			$this->_connection = new \MySQLi(($persistent ? 'p:' : '') . $hostname, $username, $password, $database, (int)$port, $socket);
 		}
 		catch (\Exception $e)
 		{
@@ -345,7 +337,7 @@ class Driver_MySQLi extends Database implements DriverInterface {
 		// Make sure the database is connected
 		$this->_connection or $this->connect();
 
-		return (bool) $this->_connection->query('COMMIT');
+		return $this->transactionCommit();
 	}
 
 	/**
@@ -358,7 +350,7 @@ class Driver_MySQLi extends Database implements DriverInterface {
 		// Make sure the database is connected
 		$this->_connection or $this->connect();
 
-		return (bool) $this->_connection->query('ROLLBACK');
+		return $this->transactionRollback();
 	}
 
 	/**
@@ -371,14 +363,14 @@ class Driver_MySQLi extends Database implements DriverInterface {
 	 */
 	public function escape($value)
 	{
-	    //$this->ping();
-	    $this->_connection OR $this->connect();
+		//$this->ping();
+		$this->_connection OR $this->connect();
 
-	    if (($value = $this->_connection->real_escape_string((string) $value)) === false) {
-	        throw new DatabaseException($this->_connection->error, $this->_connection->errno);
-	    }
+		if (($value = $this->_connection->real_escape_string((string) $value)) === false) {
+			throw new DatabaseException($this->_connection->error, $this->_connection->errno);
+		}
 
-	    // SQL standard is to use single-quotes for all values
+		// SQL standard is to use single-quotes for all values
 		return "'$value'";
 	}
 

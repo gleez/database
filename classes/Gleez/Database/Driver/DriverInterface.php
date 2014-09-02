@@ -2,7 +2,7 @@
 /**
  * Gleez CMS (http://gleezcms.org)
  *
- * @link https://github.com/gleez/database Canonical source repository
+ * @link https://github.com/gleez/cms Canonical source repository
  * @copyright Copyright (c) 2011-2014 Gleez Technologies
  * @license http://gleezcms.org/license Gleez CMS License
  */
@@ -12,9 +12,9 @@ namespace Gleez\Database\Driver;
 /**
  * Database Driver interface
  *
- * @package Gleez\Database\Drivers
+ * @package Gleez\Database\Driver
  * @version 1.0.0
- * @author Gleez Team
+ * @author  Gleez Team
  */
 interface DriverInterface
 {}
