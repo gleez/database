@@ -69,6 +69,8 @@ class Driver_MySQLi extends Database implements DriverInterface
 				sprintf('The "mysqli" extension is required for %s driver but the extension is not loaded.', __CLASS__)
 			);
 		}
+
+		return true;
 	}
 
 	/**
