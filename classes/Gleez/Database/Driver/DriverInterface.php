@@ -17,4 +17,11 @@ namespace Gleez\Database\Driver;
  * @author  Gleez Team
  */
 interface DriverInterface
-{}
+{
+	/**
+	 * Check environment
+	 *
+	 * @return bool
+	 */
+	public function checkEnvironment();
+}
