@@ -9,6 +9,11 @@
 
 namespace Gleez\Database;
 
+use Gleez\Database\Driver\Driver;
+use Gleez_Exception;
+use Config;
+use Arr;
+
 // Grab the files for HHVM
 require_once __DIR__ . '/Driver/MySQLi.php';
 require_once __DIR__ . '/Expression.php';
@@ -109,9 +114,9 @@ abstract class Database
 			$name = static::$default;
 		}
 
-		if ( ! $writable and ($readonly = \Config::get("database.{$name}.readonly", false)))
+		if ( ! $writable and ($readonly = Config::get("database.{$name}.readonly", false)))
 		{
-			! isset(static::$_readonly[$name]) and static::$_readonly[$name] = \Arr::get($readonly, array_rand($readonly));
+			! isset(static::$_readonly[$name]) and static::$_readonly[$name] = Arr::get($readonly, array_rand($readonly));
 			$name = static::$_readonly[$name];
 		}
 
@@ -120,17 +125,25 @@ abstract class Database
 			if ($config === NULL)
 			{
 				// Load the configuration for this database
-				$config = \Config::get("database.{$name}");
+				$config = Config::get("database.{$name}");
 			}
 
 			if ( ! isset($config['type']))
 			{
-				throw new \Gleez_Exception('Database type not defined in :name configuration',
+				throw new Gleez_Exception('Database type not defined in :name configuration',
 				array(':name' => $name));
 			}
 
+			if (!array_key_exists(strtolower($config['type']), Driver::$drivers)) {
+				throw new Gleez_Exception('Database Driver for ":type" type not defined', array(':type' => $config['type']));
+			}
+
 			// Set the driver class name
-			$driver = '\Gleez\Database\Driver_'.ucfirst($config['type']);
+			$driver = Driver::$drivers[strtolower($config['type'])];
+
+			if (!class_exists($driver)) {
+				throw new Gleez_Exception('Database Driver ":driver" not found', array(':name' => $driver));
+			}
 
 			// Create the database connection instance
 			$driver = new $driver($name, $config);

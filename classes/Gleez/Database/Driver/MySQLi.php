@@ -7,9 +7,13 @@
  * @license http://gleezcms.org/license Gleez CMS License
  */
 
-namespace Gleez\Database;
+namespace Gleez\Database\Driver;
 
-use Gleez\Database\Driver\DriverInterface;
+use Gleez\Database\ConnectionException;
+use Gleez\Database\DatabaseException;
+use Gleez\Database\Database;
+use Gleez\Database\Result;
+
 use RuntimeException;
 
 /**
@@ -22,9 +26,9 @@ use RuntimeException;
  *
  * @package Gleez\Database\Driver
  * @version 2.1.2
- * @author Gleez Team
+ * @author  Gleez Team
  */
-class Driver_MySQLi extends Database implements DriverInterface
+class MySQLi extends Database implements DriverInterface
 {
 	/**
 	 * Database in use by each connection
