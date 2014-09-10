@@ -7,7 +7,14 @@
  * @license http://gleezcms.org/license Gleez CMS License
  */
 
-namespace Gleez\Database;
+namespace Gleez\Database\Driver;
+
+use Gleez\Database\ConnectionException;
+use Gleez\Database\DatabaseException;
+use Gleez\Database\Database;
+use Gleez\Database\Result;
+
+use RuntimeException;
 
 /**
  * MySQLi database connection driver
@@ -18,12 +25,11 @@ namespace Gleez\Database;
  * - MySQL 5.0 or higher
  *
  * @package Gleez\Database\Driver
- * @version 2.1.1
- * @author Gleez Team
+ * @version 2.1.2
+ * @author  Gleez Team
  */
-class Driver_MySQLi extends Database implements Driver\DriverInterface
+class MySQLi extends Database implements DriverInterface
 {
-
 	/**
 	 * Database in use by each connection
 	 * @var array
@@ -53,6 +59,36 @@ class Driver_MySQLi extends Database implements Driver\DriverInterface
 	 * @var \mysqli
 	 */
 	protected $_connection;
+
+	/**
+	 * Check environment
+	 *
+	 * @return bool
+	 * @throws RuntimeException
+	 */
+	public function checkEnvironment()
+	{
+		if (!extension_loaded('mysqli')) {
+			throw new RuntimeException(
+				sprintf('The "mysqli" extension is required for %s driver but the extension is not loaded.', __CLASS__)
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Class constructor
+	 *
+	 * @param string $name   Instance name
+	 * @param array  $config Configuration parameters
+	 */
+	public function __construct($name, array $config)
+	{
+		$this->checkEnvironment();
+
+		parent::__construct($name, $config);
+	}
 
 	/**
 	 * Connect to the database
