@@ -69,12 +69,6 @@ abstract class Database
 	protected $_identifier = '"';
 
 	/**
-	 * Last executed result
-	 * @var \mysqli_result
-	 */
-	protected $last_result;
-
-	/**
 	 * Ready for use queries
 	 *
 	 * @var  array
