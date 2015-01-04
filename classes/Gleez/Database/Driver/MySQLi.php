@@ -13,6 +13,7 @@ use Gleez\Database\ConnectionException;
 use Gleez\Database\DatabaseException;
 use Gleez\Database\Database;
 use Gleez\Database\Result;
+use Exception;
 
 /**
  * MySQLi database connection driver
@@ -89,46 +90,53 @@ class MySQLi extends Database implements DriverInterface
 	 */
 	public function connect()
 	{
-		if ($this->_connection)
-		{
-			return;
+		// Don't allow to execute twice
+		if ($this->_connection) {
+			return $this;
 		}
 
-		if (!self::$_set_names)
-		{
+		// @todo Gleez use at least PHP 5.3.x & MySQL 5.x
+		if (!self::$_set_names) {
 			// Determine if we can use mysqli_set_charset(), which is only
 			// available on PHP 5.2.3+ when compiled against MySQL 5.0+
 			self::$_set_names = ! \function_exists('mysqli_set_charset');
 		}
 
-		/**
-		 * Extract the connection parameters, adding required variables
-		 *
-		 * @var  $database   string
-		 * @var  $hostname   string
-		 * @var  $username   string
-		 * @var  $password   string
-		 * @var  $socket     string
-		 * @var  $port       string
-		 * @var  $persistent boolean
-		 */
-		extract($this->_config['connection'] + array(
-			'database'   => '',
-			'hostname'   => '',
-			'username'   => '',
-			'password'   => '',
-			'socket'     => '',
-			'port'       => 3306,
-			'persistent' => FALSE,
-		));
+		// localize
+		$config = $this->_config['connection'];
+
+		$findConfigValue = function ($key, $default = null) use ($config) {
+			if (isset($config[$key])) {
+			return $config[$key];
+			}
+
+			return $default;
+		};
+
+		$hostname  = $findConfigValue('hostname', '');
+		$database  = $findConfigValue('database', '');
+		$username  = $findConfigValue('username', '');
+		$password  = $findConfigValue('password', '');
+		$port      = $findConfigValue('port', 3306);
+		$socket    = $findConfigValue('socket');
+		$persist   = $findConfigValue('persistent', false);
+		$charset   = $findConfigValue('charset');
+		$variables = $findConfigValue('variables', []);
+		$nolock    = $findConfigValue('nolock');
 
 		// Prevent this information from showing up in traces
-		unset($this->_config['connection']['username'], $this->_config['connection']['password']);
+		if ($password) {
+			unset($this->_config['password']);
+		}
+
+		if ($username) {
+			unset($this->_config['user']);
+		}
 
 		try
 		{
 			// See http://www.php.net/manual/en/mysqli.persistconns.php
-			$this->_connection = new \MySQLi(($persistent ? 'p:' : '') . $hostname, $username, $password, $database, (int)$port, $socket);
+			$this->_connection = new \MySQLi(($persist ? 'p:' : '') . $hostname, $username, $password, $database, (int) $port, $socket);
 		}
 		catch (\Exception $e)
 		{
@@ -141,24 +149,27 @@ class MySQLi extends Database implements DriverInterface
 		// \xFF is a better delimiter, but the PHP driver uses underscore
 		$this->_connection_id = \sha1($hostname.'_'.$username.'_'.$password);
 
-		if ( ! empty($this->_config['charset']))
-		{
+		if ($charset) {
 			// Set the character set
-			$this->set_charset($this->_config['charset']);
+			$this->set_charset($charset);
 		}
 
-		if ( ! empty($this->_config['connection']['variables']) AND is_array($this->_config['connection']['variables']))
-		{
+		if ($variables && is_array($variables)) {
 			// Set session variables
-			$variables = array();
+			$vars = array();
 
-			foreach ($this->_config['connection']['variables'] as $var => $val)
-			{
-				$variables[] = 'SESSION '.$var.' = '.$this->quote($val);
+			foreach ($variables as $var => $val) {
+				$vars[] = 'SESSION '.$var.' = '.$this->quote($val);
 			}
 
-			$this->_connection->query('SET '.\implode(', ', $variables));
+			$this->_connection->query('SET '.\implode(', ', $vars));
 		}
+
+		if ($nolock) {
+			$this->_connection->query('SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;');
+		}
+
+		return $this;
 	}
 
 	/**
