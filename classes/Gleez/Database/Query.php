@@ -10,7 +10,7 @@
 namespace Gleez\Database;
 
 /**
- * MySQLi Database Expression
+ * MySQLi Database Query
  *
  * @package Gleez\Database
  * @version 2.0.1
@@ -249,7 +249,7 @@ class Query
 	 * Runs the compile function
 	 *
 	 * @param   \Gleez\Database\Database $db  The database instance [Optional]
-	 * @return  string  The current object
+	 * @return  string
 	 */
 	public function compile(Database $db = null)
 	{
@@ -704,7 +704,6 @@ class Query
 
 		$query .= $this->compileWhere($db);
 
-		// pass the
 		$this->_query = trim($query);
 
 		return $this;
@@ -1138,7 +1137,7 @@ class Query
 	 *
 	 * @param  string  $column  A column to group by
 	 *
-	 * @return  \Gleez\Database\Query  The current object
+	 * @return  \Gleez\Database\Query  The current object [Optional]
 	 */
 	public function groupBy($column)
 	{
@@ -1576,6 +1575,7 @@ class Query
 	{
 		$this->select =
 		$this->from =
+		$this->distinct =
 		$this->using =
 		$this->join =
 		$this->where =

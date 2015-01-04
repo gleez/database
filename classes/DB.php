@@ -138,7 +138,7 @@ class DB
 	 * $query = DB::update('users');
 	 * </code>
 	 *
-	 * @param   string  $table  table to update
+	 * @param string $table Table to update [Optional]
 	 * @return  \Gleez\Database\Query
 	 */
 	public static function update($table = NULL)
