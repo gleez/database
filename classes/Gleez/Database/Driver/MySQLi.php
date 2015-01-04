@@ -14,8 +14,6 @@ use Gleez\Database\DatabaseException;
 use Gleez\Database\Database;
 use Gleez\Database\Result;
 
-use RuntimeException;
-
 /**
  * MySQLi database connection driver
  *
@@ -25,7 +23,7 @@ use RuntimeException;
  * - MySQL 5.0 or higher
  *
  * @package Gleez\Database\Driver
- * @version 2.1.2
+ * @version 2.1.3
  * @author  Gleez Team
  */
 class MySQLi extends Database implements DriverInterface
@@ -40,13 +38,13 @@ class MySQLi extends Database implements DriverInterface
 	 * Use SET NAMES to set the character set
 	 * @var boolean
 	 */
-	protected static $_set_names;
+	protected static $_set_names = false;
 
 	/**
 	 * Identifier for this connection within the PHP driver
 	 * @var string
 	 */
-	protected $_connection_id;
+	protected $_connection_id = null;
 
 	/**
 	 * MySQL uses a backticks for identifiers
@@ -58,36 +56,23 @@ class MySQLi extends Database implements DriverInterface
 	 * Raw server connection
 	 * @var \mysqli
 	 */
-	protected $_connection;
+	protected $_connection = null;
 
 	/**
 	 * Check environment
 	 *
 	 * @return bool
-	 * @throws RuntimeException
+	 * @throws \Gleez\Database\DatabaseException
 	 */
 	public function checkEnvironment()
 	{
 		if (!extension_loaded('mysqli')) {
-			throw new RuntimeException(
+			throw new DatabaseException(
 				sprintf('The "mysqli" extension is required for %s driver but the extension is not loaded.', __CLASS__)
 			);
 		}
 
 		return true;
-	}
-
-	/**
-	 * Class constructor
-	 *
-	 * @param string $name   Instance name
-	 * @param array  $config Configuration parameters
-	 */
-	public function __construct($name, array $config)
-	{
-		$this->checkEnvironment();
-
-		parent::__construct($name, $config);
 	}
 
 	/**
@@ -109,7 +94,7 @@ class MySQLi extends Database implements DriverInterface
 			return;
 		}
 
-		if (is_null(self::$_set_names))
+		if (!self::$_set_names)
 		{
 			// Determine if we can use mysqli_set_charset(), which is only
 			// available on PHP 5.2.3+ when compiled against MySQL 5.0+
@@ -284,7 +269,7 @@ class MySQLi extends Database implements DriverInterface
 	 * $db->query(Database::SELECT, 'SELECT * FROM users LIMIT 1', 'Model_User');
 	 * ~~~
 	 *
-	 * @param   integer  $type       Database::SELECT, Database::INSERT, etc
+	 * @param   string   $type       Database::SELECT, Database::INSERT, etc
 	 * @param   string   $sql        SQL query
 	 * @param   boolean  $as_object  Result object class string, TRUE for stdClass, FALSE for assoc array [Optional]
 	 * @param   array    $params     Object construct parameters for result class [Optional]
@@ -304,7 +289,10 @@ class MySQLi extends Database implements DriverInterface
 		// Make sure the database is connected
 		$this->_connection OR $this->connect();
 
-		if ( ! empty($this->_config['connection']['persistent']) AND $this->_config['connection']['database'] !== self::$_current_databases[$this->_connection_id])
+		if (!empty($this->_config['connection']['persistent']) &&
+			isset(static::$_current_databases[$this->_connection_id]) &&
+			$this->_config['connection']['database'] !== static::$_current_databases[$this->_connection_id]
+		)
 		{
 			// Select database on persistent connections
 			$this->_select_db($this->_config['connection']['database']);
@@ -313,19 +301,18 @@ class MySQLi extends Database implements DriverInterface
 		// Execute the query
 		if (($resource = $this->_connection->query($sql)) === FALSE)
 		{
-			throw new DatabaseException('['.$this->_connection->errno.'] '.
-			$this->_connection->error.' [ '.$sql.']', $this->_connection->errno);
+			throw new DatabaseException(sprintf('[%s] [%s]', $this->_connection->errno, $this->_connection->error), $this->_connection->errno);
 		}
 
 		// Set the last query
 		$this->last_query = $sql;
 
-		if ($type === 'select')
+		if ($type === Database::SELECT)
 		{
 			// Return an iterator of results
 			return new Result($resource, $sql, $as_object, $params);
 		}
-		elseif ($type === 'insert')
+		elseif ($type === Database::INSERT)
 		{
 			// Return a list of insert id and rows created
 			return array(
