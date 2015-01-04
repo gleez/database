@@ -49,6 +49,7 @@ class MySQLi extends Database implements DriverInterface
 
 	/**
 	 * MySQL uses a backticks for identifiers
+	 * For enabling double quotation marks use SET sql_mode='ANSI_QUOTES';
 	 * @var string
 	 */
 	protected $_identifier = '`';
@@ -321,12 +322,12 @@ class MySQLi extends Database implements DriverInterface
 		if ($type === Database::SELECT)
 		{
 			// Return an iterator of results
-			return new Result($resource, $sql, $as_object, $params);
+			$this->last_result = new Result($resource, $sql, $as_object, $params);
 		}
 		elseif ($type === Database::INSERT)
 		{
 			// Return a list of insert id and rows created
-			return array(
+			$this->last_result = array(
 				$this->_connection->insert_id,
 				$this->_connection->affected_rows,
 			);
@@ -334,8 +335,10 @@ class MySQLi extends Database implements DriverInterface
 		else
 		{
 			// Return the number of rows affected
-			return $this->_connection->affected_rows;
+			$this->last_result = $this->_connection->affected_rows;
 		}
+
+		return $this->last_result;
 	}
 
 	/**
