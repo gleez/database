@@ -13,7 +13,7 @@ namespace Gleez\Database;
  * MySQLi Database Query
  *
  * @package Gleez\Database
- * @version 2.0.1
+ * @version 2.0.2
  * @author  Gleez Team
  */
 class Query
@@ -490,7 +490,7 @@ class Query
 					{
 						$query .= 'id ';
 					}
-					else
+					elseif (!is_null($where['column']))
 					{
 						$query .= $db->getConnection()->quoteIdentifier($where['column']).' ';
 					}
@@ -504,6 +504,10 @@ class Query
 						// Quote the value, it is not a parameter
 						$query .= $where['operator'].' '.$db->getConnection()->quote($where['value']).' ';
 					}
+                                        elseif (is_null($where['value']))
+                                        {
+                                                $query .= $where['operator'].' ';
+                                        }
 					else
 					{
 						$query .= $where['operator'].' '.$where['value'].' ';
